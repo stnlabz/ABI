@@ -1,15 +1,10 @@
 /*
  * STN-LABZ
- * STN-LABZ Module ABI 1.3
+ * Module ABI 1.4
  *
  * abi.c
  *
- * Reusable module lifecycle orchestration.
- *
- * Core owns lifecycle state, qualification decisions,
- * activation authority, and qualification evidence.
- *
- * Modules provide descriptors and callbacks.
+ * Cross-application module lifecycle orchestration.
  */
 
 #include <stdio.h>
@@ -18,23 +13,13 @@
 #include "abi.h"
 
 
-/*
- * ------------------------------------------------
- * PREPARE MODULE
- * ------------------------------------------------
- */
-
 stnlabz_module_result_t
 stnlabz_module_abi_prepare(
     stnlabz_module_registry_t *registry,
-    stnlabz_module_inventory_t *inventory,
     const stnlabz_module_descriptor_t *descriptor
 )
 {
     stnlabz_module_result_t result;
-
-    const stnlabz_module_inventory_record_t
-        *qualification_record;
 
 
     if (
@@ -46,10 +31,6 @@ stnlabz_module_abi_prepare(
             STNLABZ_MODULE_ERR_INVALID_ARGUMENT;
     }
 
-
-    /*
-     * Discovery establishes presence only.
-     */
 
     result =
         stnlabz_module_registry_discover(
@@ -67,10 +48,6 @@ stnlabz_module_abi_prepare(
     }
 
 
-    /*
-     * Verify identity and Core API compatibility.
-     */
-
     result =
         stnlabz_module_registry_verify(
             registry,
@@ -87,157 +64,13 @@ stnlabz_module_abi_prepare(
     }
 
 
-    /*
-     * If Core has persistent qualification evidence,
-     * it may be restored only when inventory_find()
-     * confirms an exact module revision and exact
-     * required Core API match.
-     */
-
-    qualification_record =
-        NULL;
-
-
-    if (
-        inventory != NULL
-    )
-    {
-        qualification_record =
-            stnlabz_module_inventory_find(
-                inventory,
-                descriptor
-            );
-    }
-
-
-    if (
-        qualification_record != NULL
-    )
-    {
-        return
-            stnlabz_module_registry_restore_qualification(
-                registry,
-                descriptor->id,
-                &qualification_record->qualification
-            );
-    }
-
-
-    /*
-     * No exact persisted qualification exists.
-     *
-     * Execute the module qualification suite under
-     * Core control.
-     */
-
-    result =
+    return
         stnlabz_module_registry_qualify(
             registry,
             descriptor->id
         );
-
-
-    if (
-        result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        return result;
-    }
-
-
-    /*
-     * Persist live qualification evidence when an
-     * inventory has been supplied.
-     *
-     * Inventory persistence failure does not erase the
-     * live qualification result already established by
-     * Core. The caller can decide whether persistence
-     * failure is operationally fatal for the host.
-     *
-     * This preserves the existing separation between
-     * module lifecycle results and inventory-specific
-     * I/O results.
-     */
-
-    if (
-        inventory != NULL
-    )
-    {
-        const stnlabz_module_record_t *record;
-
-        stnlabz_module_inventory_result_t
-            inventory_result;
-
-
-        record =
-            stnlabz_module_registry_find(
-                registry,
-                descriptor->id
-            );
-
-
-        if (
-            record == NULL
-        )
-        {
-            (void)
-            stnlabz_module_registry_fail(
-                registry,
-                descriptor->id
-            );
-
-
-            return
-                STNLABZ_MODULE_ERR_NOT_FOUND;
-        }
-
-
-        inventory_result =
-            stnlabz_module_inventory_store(
-                inventory,
-                descriptor,
-                &record->qualification
-            );
-
-
-        if (
-            inventory_result !=
-            STNLABZ_MODULE_INVENTORY_OK
-        )
-        {
-            /*
-             * The current module result enum has no
-             * inventory-I/O-specific result.
-             *
-             * Treat inability to preserve Core-owned
-             * qualification evidence as a failed
-             * preparation boundary.
-             */
-
-            (void)
-            stnlabz_module_registry_fail(
-                registry,
-                descriptor->id
-            );
-
-
-            return
-                STNLABZ_MODULE_ERR_QUALIFICATION;
-        }
-    }
-
-
-    return
-        STNLABZ_MODULE_OK;
 }
 
-
-/*
- * ------------------------------------------------
- * AUTHORIZE AND ACTIVATE
- * ------------------------------------------------
- */
 
 stnlabz_module_result_t
 stnlabz_module_abi_authorize_and_activate(
@@ -262,26 +95,6 @@ stnlabz_module_abi_authorize_and_activate(
     }
 
 
-    record =
-        stnlabz_module_registry_find(
-            registry,
-            module_id
-        );
-
-
-    if (
-        record == NULL
-    )
-    {
-        return
-            STNLABZ_MODULE_ERR_NOT_FOUND;
-    }
-
-
-    /*
-     * Authorization is separate from qualification.
-     */
-
     result =
         stnlabz_module_registry_authorize_activation(
             registry,
@@ -297,15 +110,6 @@ stnlabz_module_abi_authorize_and_activate(
         return result;
     }
 
-
-    /*
-     * Start callback is optional in the current
-     * descriptor structure.
-     *
-     * A module with no start callback may still be
-     * activated if Core has qualified and authorized
-     * it.
-     */
 
     record =
         stnlabz_module_registry_find(
@@ -353,11 +157,6 @@ stnlabz_module_abi_authorize_and_activate(
     }
 
 
-    /*
-     * Only after successful start does Core record the
-     * module as ACTIVE.
-     */
-
     result =
         stnlabz_module_registry_activate(
             registry,
@@ -370,14 +169,6 @@ stnlabz_module_abi_authorize_and_activate(
         STNLABZ_MODULE_OK
     )
     {
-        /*
-         * Start succeeded but ACTIVE state could not
-         * be committed.
-         *
-         * Roll the module callback back before marking
-         * the registry record FAILED.
-         */
-
         record =
             stnlabz_module_registry_find(
                 registry,
@@ -412,12 +203,6 @@ stnlabz_module_abi_authorize_and_activate(
         STNLABZ_MODULE_OK;
 }
 
-
-/*
- * ------------------------------------------------
- * STOP CALLBACK
- * ------------------------------------------------
- */
 
 stnlabz_module_result_t
 stnlabz_module_abi_stop(
@@ -478,60 +263,127 @@ stnlabz_module_abi_stop(
 
 
     if (
-        record->descriptor.stop ==
-        NULL
+        record->descriptor.stop != NULL
     )
     {
-        return
-            STNLABZ_MODULE_OK;
+        result =
+            record
+                ->descriptor
+                .stop();
+
+
+        if (
+            result !=
+            STNLABZ_MODULE_OK
+        )
+        {
+            (void)
+            stnlabz_module_registry_fail(
+                registry,
+                module_id
+            );
+
+
+            return
+                STNLABZ_MODULE_ERR_STOP_FAILED;
+        }
     }
 
 
-    result =
-        record
-            ->descriptor
-            .stop();
+    return
+        stnlabz_module_registry_stop(
+            registry,
+            module_id
+        );
+}
+
+
+stnlabz_module_result_t
+stnlabz_module_abi_unregister(
+    stnlabz_module_registry_t *registry,
+    const char *module_id
+)
+{
+    return
+        stnlabz_module_registry_unregister(
+            registry,
+            module_id
+        );
+}
+
+
+stnlabz_module_result_t
+stnlabz_module_abi_prepare_replacement(
+    stnlabz_module_registry_t *registry,
+    const char *module_id
+)
+{
+    const stnlabz_module_record_t *record;
+
+    stnlabz_module_result_t result;
 
 
     if (
-        result !=
-        STNLABZ_MODULE_OK
+        registry == NULL ||
+        module_id == NULL ||
+        module_id[0] == '\0'
     )
     {
-        (void)
-        stnlabz_module_registry_fail(
+        return
+            STNLABZ_MODULE_ERR_INVALID_ARGUMENT;
+    }
+
+
+    record =
+        stnlabz_module_registry_find(
             registry,
             module_id
         );
 
 
+    if (
+        record == NULL
+    )
+    {
         return
-            STNLABZ_MODULE_ERR_STOP_FAILED;
+            STNLABZ_MODULE_ERR_NOT_FOUND;
     }
 
 
-    /*
-     * ABI 1.3 contains no inactive/deactivated state.
-     *
-     * Do not fabricate a lifecycle transition here.
-     */
+    if (
+        record->state ==
+        STNLABZ_MODULE_STATE_ACTIVE
+    )
+    {
+        result =
+            stnlabz_module_abi_stop(
+                registry,
+                module_id
+            );
+
+
+        if (
+            result !=
+            STNLABZ_MODULE_OK
+        )
+        {
+            return result;
+        }
+    }
+
 
     return
-        STNLABZ_MODULE_OK;
+        stnlabz_module_abi_unregister(
+            registry,
+            module_id
+        );
 }
 
 
 /*
  * ================================================================
- * ABI SELF TEST
+ * SELF TEST
  * ================================================================
- */
-
-
-/*
- * ------------------------------------------------
- * TEST MODULE QUALIFICATION
- * ------------------------------------------------
  */
 
 static stnlabz_module_result_t
@@ -576,12 +428,6 @@ abi_test_qualify(
 }
 
 
-/*
- * ------------------------------------------------
- * TEST MODULE START
- * ------------------------------------------------
- */
-
 static stnlabz_module_result_t
 abi_test_start(
     const stnlabz_module_host_t *host
@@ -589,17 +435,10 @@ abi_test_start(
 {
     (void)host;
 
-
     return
         STNLABZ_MODULE_OK;
 }
 
-
-/*
- * ------------------------------------------------
- * TEST MODULE STOP
- * ------------------------------------------------
- */
 
 static stnlabz_module_result_t
 abi_test_stop(void)
@@ -608,12 +447,6 @@ abi_test_stop(void)
         STNLABZ_MODULE_OK;
 }
 
-
-/*
- * ------------------------------------------------
- * TEST DESCRIPTOR
- * ------------------------------------------------
- */
 
 static const stnlabz_module_descriptor_t
 ABI_TEST_DESCRIPTOR =
@@ -635,12 +468,6 @@ ABI_TEST_DESCRIPTOR =
 };
 
 
-/*
- * ------------------------------------------------
- * EXPECT RESULT
- * ------------------------------------------------
- */
-
 static int
 abi_test_expect(
     const char *name,
@@ -648,16 +475,8 @@ abi_test_expect(
     stnlabz_module_result_t expected
 )
 {
-    if (
-        name == NULL
-    )
-    {
-        return 0;
-    }
-
-
     printf(
-        "%-30s : %-20s",
+        "%-32s : %-20s",
         name,
         stnlabz_module_result_string(
             actual
@@ -676,7 +495,6 @@ abi_test_expect(
             )
         );
 
-
         return 0;
     }
 
@@ -689,12 +507,6 @@ abi_test_expect(
     return 1;
 }
 
-
-/*
- * ------------------------------------------------
- * EXPECT STATE
- * ------------------------------------------------
- */
 
 static int
 abi_test_expect_state(
@@ -718,17 +530,16 @@ abi_test_expect_state(
     )
     {
         printf(
-            "%-30s : NOT_FOUND FAIL\n",
+            "%-32s : NOT_FOUND FAIL\n",
             "STATE"
         );
-
 
         return 0;
     }
 
 
     printf(
-        "%-30s : %-20s",
+        "%-32s : %-20s",
         "STATE",
         stnlabz_module_state_string(
             record->state
@@ -747,7 +558,6 @@ abi_test_expect_state(
             )
         );
 
-
         return 0;
     }
 
@@ -760,12 +570,6 @@ abi_test_expect_state(
     return 1;
 }
 
-
-/*
- * ------------------------------------------------
- * SELF TEST
- * ------------------------------------------------
- */
 
 int
 stnlabz_module_abi_self_test(void)
@@ -792,20 +596,9 @@ stnlabz_module_abi_self_test(void)
     );
 
 
-    /*
-     * Prepare with no persistent inventory.
-     *
-     * This executes:
-     *
-     *     discover
-     *     verify
-     *     qualify
-     */
-
     result =
         stnlabz_module_abi_prepare(
             &registry,
-            NULL,
             &ABI_TEST_DESCRIPTOR
         );
 
@@ -815,14 +608,7 @@ stnlabz_module_abi_self_test(void)
             "PREPARE",
             result,
             STNLABZ_MODULE_OK
-        )
-    )
-    {
-        return 1;
-    }
-
-
-    if (
+        ) ||
         !abi_test_expect_state(
             &registry,
             ABI_TEST_DESCRIPTOR.id,
@@ -833,34 +619,6 @@ stnlabz_module_abi_self_test(void)
         return 1;
     }
 
-
-    /*
-     * Qualification alone must not activate.
-     */
-
-    result =
-        stnlabz_module_registry_activate(
-            &registry,
-            ABI_TEST_DESCRIPTOR.id
-        );
-
-
-    if (
-        !abi_test_expect(
-            "ACTIVATE WITHOUT AUTHORITY",
-            result,
-            STNLABZ_MODULE_ERR_NOT_AUTHORIZED
-        )
-    )
-    {
-        return 1;
-    }
-
-
-    /*
-     * Explicit authorization + callback start +
-     * ACTIVE registry transition.
-     */
 
     result =
         stnlabz_module_abi_authorize_and_activate(
@@ -875,14 +633,7 @@ stnlabz_module_abi_self_test(void)
             "AUTHORIZE + ACTIVATE",
             result,
             STNLABZ_MODULE_OK
-        )
-    )
-    {
-        return 1;
-    }
-
-
-    if (
+        ) ||
         !abi_test_expect_state(
             &registry,
             ABI_TEST_DESCRIPTOR.id,
@@ -895,10 +646,9 @@ stnlabz_module_abi_self_test(void)
 
 
     /*
-     * Orderly module callback shutdown.
+     * ABI 1.4 lifecycle addition:
      *
-     * ABI 1.3 leaves registry state ACTIVE because no
-     * DEACTIVATED/STOPPED transition exists yet.
+     * ACTIVE -> STOPPED
      */
 
     result =
@@ -910,9 +660,14 @@ stnlabz_module_abi_self_test(void)
 
     if (
         !abi_test_expect(
-            "STOP CALLBACK",
+            "STOP",
             result,
             STNLABZ_MODULE_OK
+        ) ||
+        !abi_test_expect_state(
+            &registry,
+            ABI_TEST_DESCRIPTOR.id,
+            STNLABZ_MODULE_STATE_STOPPED
         )
     )
     {
@@ -920,7 +675,44 @@ stnlabz_module_abi_self_test(void)
     }
 
 
+    /*
+     * Same revision retains qualification but not
+     * activation authority.
+     */
+
+    result =
+        stnlabz_module_registry_activate(
+            &registry,
+            ABI_TEST_DESCRIPTOR.id
+        );
+
+
     if (
+        !abi_test_expect(
+            "REACTIVATE WITHOUT AUTHORITY",
+            result,
+            STNLABZ_MODULE_ERR_NOT_AUTHORIZED
+        )
+    )
+    {
+        return 1;
+    }
+
+
+    result =
+        stnlabz_module_abi_authorize_and_activate(
+            &registry,
+            ABI_TEST_DESCRIPTOR.id,
+            NULL
+        );
+
+
+    if (
+        !abi_test_expect(
+            "REAUTHORIZE + REACTIVATE",
+            result,
+            STNLABZ_MODULE_OK
+        ) ||
         !abi_test_expect_state(
             &registry,
             ABI_TEST_DESCRIPTOR.id,
@@ -933,11 +725,13 @@ stnlabz_module_abi_self_test(void)
 
 
     /*
-     * Exercise containment.
+     * True replacement boundary:
+     *
+     * ACTIVE -> STOPPED -> UNREGISTERED -> removed
      */
 
     result =
-        stnlabz_module_registry_quarantine(
+        stnlabz_module_abi_prepare_replacement(
             &registry,
             ABI_TEST_DESCRIPTOR.id
         );
@@ -945,7 +739,7 @@ stnlabz_module_abi_self_test(void)
 
     if (
         !abi_test_expect(
-            "QUARANTINE",
+            "PREPARE REPLACEMENT",
             result,
             STNLABZ_MODULE_OK
         )
@@ -956,33 +750,51 @@ stnlabz_module_abi_self_test(void)
 
 
     if (
-        !abi_test_expect_state(
+        stnlabz_module_registry_find(
             &registry,
-            ABI_TEST_DESCRIPTOR.id,
-            STNLABZ_MODULE_STATE_QUARANTINED
-        )
+            ABI_TEST_DESCRIPTOR.id
+        ) != NULL
     )
     {
+        printf(
+            "%-32s : PRESENT FAIL\n",
+            "POST-UNREGISTER LOOKUP"
+        );
+
         return 1;
     }
 
 
+    printf(
+        "%-32s : NOT_FOUND PASS\n",
+        "POST-UNREGISTER LOOKUP"
+    );
+
+
     /*
-     * Quarantined modules remain blocked.
+     * Replacement revision enters as a new discovery.
+     *
+     * This proves registry lifecycle readiness.
+     * Dynamic loader replacement remains platform-owned.
      */
 
     result =
-        stnlabz_module_registry_authorize_activation(
+        stnlabz_module_abi_prepare(
             &registry,
-            ABI_TEST_DESCRIPTOR.id
+            &ABI_TEST_DESCRIPTOR
         );
 
 
     if (
         !abi_test_expect(
-            "AUTHORIZE QUARANTINED",
+            "REDISCOVER REPLACEMENT",
             result,
-            STNLABZ_MODULE_ERR_QUARANTINED
+            STNLABZ_MODULE_OK
+        ) ||
+        !abi_test_expect_state(
+            &registry,
+            ABI_TEST_DESCRIPTOR.id,
+            STNLABZ_MODULE_STATE_QUALIFIED
         )
     )
     {
@@ -996,7 +808,7 @@ stnlabz_module_abi_self_test(void)
 
 
     printf(
-        "MODULE ABI SELF TEST PASS\n"
+        "MODULE ABI 1.4 LIFECYCLE SELF TEST PASS\n"
     );
 
 

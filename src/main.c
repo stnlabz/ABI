@@ -1,10 +1,10 @@
 /*
  * STN-LABZ
- * Module ABI 1.3
+ * Module ABI 1.4
  *
  * main.c
  *
- * Minimal standalone ABI validation executable.
+ * Minimal standalone lifecycle validation executable.
  */
 
 #include "abi.h"

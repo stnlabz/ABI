@@ -1,27 +1,22 @@
-#ifndef RICTUS_MODULE_H
-#define RICTUS_MODULE_H
+#ifndef STNLABZ_MODULE_H
+#define STNLABZ_MODULE_H
 
+/*
+ * STN-LABZ
+ * Module ABI 1.4
+ *
+ * module.h
+ *
+ * Cross-application module ABI definitions.
+ */
 
-#define RICTUS_MODULE_ID_MAX \
-    64
-
-#define RICTUS_MODULE_NAME_MAX \
-    64
-
-#define RICTUS_MODULE_COMMAND_NAME_MAX \
-    64
-
-#define RICTUS_MODULE_COMMAND_ARGUMENTS_MAX \
-    512
-
-#define RICTUS_MODULE_COMMAND_SENDER_MAX \
-    128
-
-#define RICTUS_MODULE_COMMAND_ACCOUNT_MAX \
-    128
-
-#define RICTUS_MODULE_MIN_TESTS \
-    10
+#define STNLABZ_MODULE_ID_MAX 64
+#define STNLABZ_MODULE_NAME_MAX 64
+#define STNLABZ_MODULE_COMMAND_NAME_MAX 64
+#define STNLABZ_MODULE_COMMAND_ARGUMENTS_MAX 512
+#define STNLABZ_MODULE_COMMAND_SENDER_MAX 128
+#define STNLABZ_MODULE_COMMAND_ACCOUNT_MAX 128
+#define STNLABZ_MODULE_MIN_TESTS 10
 
 
 /*
@@ -30,36 +25,48 @@
  * ------------------------------------------------
  */
 
-#define RICTUS_MODULE_API_MAJOR \
-    1
-
-#define RICTUS_MODULE_API_MINOR \
-    3
+#define STNLABZ_MODULE_API_MAJOR 1
+#define STNLABZ_MODULE_API_MINOR 4
 
 
 /*
  * ------------------------------------------------
  * MODULE LIFECYCLE
  * ------------------------------------------------
+ *
+ * ABI 1.4 adds:
+ *
+ *     STOPPED
+ *     UNREGISTERED
+ *
+ * STOPPED is a persistent registry state.
+ *
+ * UNREGISTERED is the terminal Core-owned removal
+ * transition. Core audits the transition before
+ * removing the module record from the registry.
  */
 
 typedef enum
 {
-    RICTUS_MODULE_STATE_DISCOVERED = 0,
+    STNLABZ_MODULE_STATE_DISCOVERED = 0,
 
-    RICTUS_MODULE_STATE_UNVERIFIED,
+    STNLABZ_MODULE_STATE_UNVERIFIED,
 
-    RICTUS_MODULE_STATE_TESTING,
+    STNLABZ_MODULE_STATE_TESTING,
 
-    RICTUS_MODULE_STATE_QUALIFIED,
+    STNLABZ_MODULE_STATE_QUALIFIED,
 
-    RICTUS_MODULE_STATE_ACTIVE,
+    STNLABZ_MODULE_STATE_ACTIVE,
 
-    RICTUS_MODULE_STATE_FAILED,
+    STNLABZ_MODULE_STATE_STOPPED,
 
-    RICTUS_MODULE_STATE_QUARANTINED
+    STNLABZ_MODULE_STATE_FAILED,
 
-} rictus_module_state_t;
+    STNLABZ_MODULE_STATE_QUARANTINED,
+
+    STNLABZ_MODULE_STATE_UNREGISTERED
+
+} stnlabz_module_state_t;
 
 
 /*
@@ -70,37 +77,37 @@ typedef enum
 
 typedef enum
 {
-    RICTUS_MODULE_OK = 0,
+    STNLABZ_MODULE_OK = 0,
 
-    RICTUS_MODULE_ERR_INVALID_ARGUMENT,
+    STNLABZ_MODULE_ERR_INVALID_ARGUMENT,
 
-    RICTUS_MODULE_ERR_INVALID_IDENTITY,
+    STNLABZ_MODULE_ERR_INVALID_IDENTITY,
 
-    RICTUS_MODULE_ERR_DUPLICATE,
+    STNLABZ_MODULE_ERR_DUPLICATE,
 
-    RICTUS_MODULE_ERR_REGISTRY_FULL,
+    STNLABZ_MODULE_ERR_REGISTRY_FULL,
 
-    RICTUS_MODULE_ERR_NOT_FOUND,
+    STNLABZ_MODULE_ERR_NOT_FOUND,
 
-    RICTUS_MODULE_ERR_INCOMPATIBLE,
+    STNLABZ_MODULE_ERR_INCOMPATIBLE,
 
-    RICTUS_MODULE_ERR_INVALID_STATE,
+    STNLABZ_MODULE_ERR_INVALID_STATE,
 
-    RICTUS_MODULE_ERR_QUALIFICATION,
+    STNLABZ_MODULE_ERR_QUALIFICATION,
 
-    RICTUS_MODULE_ERR_NOT_QUALIFIED,
+    STNLABZ_MODULE_ERR_NOT_QUALIFIED,
 
-    RICTUS_MODULE_ERR_NOT_AUTHORIZED,
+    STNLABZ_MODULE_ERR_NOT_AUTHORIZED,
 
-    RICTUS_MODULE_ERR_QUARANTINED,
+    STNLABZ_MODULE_ERR_QUARANTINED,
 
-    RICTUS_MODULE_ERR_AUDIT_FULL,
+    STNLABZ_MODULE_ERR_AUDIT_FULL,
 
-    RICTUS_MODULE_ERR_START_FAILED,
+    STNLABZ_MODULE_ERR_START_FAILED,
 
-    RICTUS_MODULE_ERR_STOP_FAILED
+    STNLABZ_MODULE_ERR_STOP_FAILED
 
-} rictus_module_result_t;
+} stnlabz_module_result_t;
 
 
 /*
@@ -121,64 +128,53 @@ typedef struct
 
     int negative_test_passed;
 
-} rictus_module_qualification_result_t;
+} stnlabz_module_qualification_result_t;
 
 
 /*
  * ------------------------------------------------
- * MODULE COMMAND
+ * GENERIC COMMAND ABI
  * ------------------------------------------------
  *
- * Command representation exposed through the
- * Core module ABI.
+ * Retained for compatibility with hosts that use
+ * command-oriented modules.
  *
- * Modules do not depend on Core command internals.
+ * Hosts that do not expose command services may
+ * leave the corresponding host callbacks NULL.
  */
 
 typedef struct
 {
     char sender[
-        RICTUS_MODULE_COMMAND_SENDER_MAX
+        STNLABZ_MODULE_COMMAND_SENDER_MAX
     ];
 
     char account[
-        RICTUS_MODULE_COMMAND_ACCOUNT_MAX
+        STNLABZ_MODULE_COMMAND_ACCOUNT_MAX
     ];
 
     char name[
-        RICTUS_MODULE_COMMAND_NAME_MAX
+        STNLABZ_MODULE_COMMAND_NAME_MAX
     ];
 
     char arguments[
-        RICTUS_MODULE_COMMAND_ARGUMENTS_MAX
+        STNLABZ_MODULE_COMMAND_ARGUMENTS_MAX
     ];
 
-} rictus_module_command_t;
+} stnlabz_module_command_t;
 
-
-/*
- * ------------------------------------------------
- * MODULE COMMAND REPLY
- * ------------------------------------------------
- */
 
 typedef int
-(*rictus_module_command_reply_fn)(
+(*stnlabz_module_command_reply_fn)(
     void *reply_context,
     const char *message
 );
 
 
-/*
- * ------------------------------------------------
- * MODULE COMMAND HANDLER
- * ------------------------------------------------
- */
-
-typedef rictus_module_result_t
-(*rictus_module_command_handler_fn)(
-    const rictus_module_command_t *command,
-    rictus_module_command_reply_fn reply,
+typedef stnlabz_module_result_t
+(*stnlabz_module_command_handler_fn)(
+    const stnlabz_module_command_t *command,
+    stnlabz_module_command_reply_fn reply,
     void *reply_context,
     void *handler_context
 );
@@ -191,51 +187,38 @@ typedef rictus_module_result_t
  */
 
 typedef int
-(*rictus_module_send_message_fn)(
+(*stnlabz_module_send_message_fn)(
     const char *message
 );
 
 
 typedef int
-(*rictus_module_register_command_fn)(
+(*stnlabz_module_register_command_fn)(
     const char *name,
-    rictus_module_command_handler_fn handler,
+    stnlabz_module_command_handler_fn handler,
     void *handler_context
 );
 
 
 typedef int
-(*rictus_module_unregister_command_fn)(
+(*stnlabz_module_unregister_command_fn)(
     const char *name,
     void *handler_context
 );
 
 
-/*
- * ------------------------------------------------
- * CORE HOST API
- * ------------------------------------------------
- *
- * Modules do not receive direct access to IRC
- * sockets, TLS state, command registries, or
- * other Core internals.
- *
- * Core exposes only approved operations through
- * this ABI.
- */
-
 typedef struct
 {
-    rictus_module_send_message_fn
+    stnlabz_module_send_message_fn
         send_message;
 
-    rictus_module_register_command_fn
+    stnlabz_module_register_command_fn
         register_command;
 
-    rictus_module_unregister_command_fn
+    stnlabz_module_unregister_command_fn
         unregister_command;
 
-} rictus_module_host_t;
+} stnlabz_module_host_t;
 
 
 /*
@@ -244,20 +227,20 @@ typedef struct
  * ------------------------------------------------
  */
 
-typedef rictus_module_result_t
-(*rictus_module_qualify_fn)(
-    rictus_module_qualification_result_t *result
+typedef stnlabz_module_result_t
+(*stnlabz_module_qualify_fn)(
+    stnlabz_module_qualification_result_t *result
 );
 
 
-typedef rictus_module_result_t
-(*rictus_module_start_fn)(
-    const rictus_module_host_t *host
+typedef stnlabz_module_result_t
+(*stnlabz_module_start_fn)(
+    const stnlabz_module_host_t *host
 );
 
 
-typedef rictus_module_result_t
-(*rictus_module_stop_fn)(void);
+typedef stnlabz_module_result_t
+(*stnlabz_module_stop_fn)(void);
 
 
 /*
@@ -269,11 +252,11 @@ typedef rictus_module_result_t
 typedef struct
 {
     char id[
-        RICTUS_MODULE_ID_MAX
+        STNLABZ_MODULE_ID_MAX
     ];
 
     char name[
-        RICTUS_MODULE_NAME_MAX
+        STNLABZ_MODULE_NAME_MAX
     ];
 
 
@@ -289,24 +272,24 @@ typedef struct
     unsigned int required_core_api_minor;
 
 
-    rictus_module_qualify_fn qualify;
+    stnlabz_module_qualify_fn qualify;
 
-    rictus_module_start_fn start;
+    stnlabz_module_start_fn start;
 
-    rictus_module_stop_fn stop;
+    stnlabz_module_stop_fn stop;
 
-} rictus_module_descriptor_t;
+} stnlabz_module_descriptor_t;
 
 
 const char *
-rictus_module_state_string(
-    rictus_module_state_t state
+stnlabz_module_state_string(
+    stnlabz_module_state_t state
 );
 
 
 const char *
-rictus_module_result_string(
-    rictus_module_result_t result
+stnlabz_module_result_string(
+    stnlabz_module_result_t result
 );
 
 

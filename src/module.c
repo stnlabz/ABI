@@ -1,6 +1,6 @@
 /*
  * STN-LABZ
- * Rictus Core
+ * Module ABI 1.4
  *
  * module.c
  *
@@ -10,153 +10,153 @@
 #include "module.h"
 
 
- /*
-  * ------------------------------------------------
-  * MODULE STATE STRING
-  * ------------------------------------------------
-  */
-
-const char* rictus_module_state_string(
-    rictus_module_state_t state
+const char *
+stnlabz_module_state_string(
+    stnlabz_module_state_t state
 )
 {
     switch (
         state
-        )
+    )
     {
-    case RICTUS_MODULE_STATE_DISCOVERED:
+        case STNLABZ_MODULE_STATE_DISCOVERED:
 
-        return "DISCOVERED";
-
-
-    case RICTUS_MODULE_STATE_UNVERIFIED:
-
-        return "UNVERIFIED";
+            return "DISCOVERED";
 
 
-    case RICTUS_MODULE_STATE_TESTING:
+        case STNLABZ_MODULE_STATE_UNVERIFIED:
 
-        return "TESTING";
-
-
-    case RICTUS_MODULE_STATE_QUALIFIED:
-
-        return "QUALIFIED";
+            return "UNVERIFIED";
 
 
-    case RICTUS_MODULE_STATE_ACTIVE:
+        case STNLABZ_MODULE_STATE_TESTING:
 
-        return "ACTIVE";
-
-
-    case RICTUS_MODULE_STATE_FAILED:
-
-        return "FAILED";
+            return "TESTING";
 
 
-    case RICTUS_MODULE_STATE_QUARANTINED:
+        case STNLABZ_MODULE_STATE_QUALIFIED:
 
-        return "QUARANTINED";
+            return "QUALIFIED";
 
 
-    default:
+        case STNLABZ_MODULE_STATE_ACTIVE:
 
-        return "UNKNOWN";
+            return "ACTIVE";
+
+
+        case STNLABZ_MODULE_STATE_STOPPED:
+
+            return "STOPPED";
+
+
+        case STNLABZ_MODULE_STATE_FAILED:
+
+            return "FAILED";
+
+
+        case STNLABZ_MODULE_STATE_QUARANTINED:
+
+            return "QUARANTINED";
+
+
+        case STNLABZ_MODULE_STATE_UNREGISTERED:
+
+            return "UNREGISTERED";
+
+
+        default:
+
+            return "UNKNOWN";
     }
 }
 
 
-/*
- * ------------------------------------------------
- * MODULE RESULT STRING
- * ------------------------------------------------
- */
-
-const char* rictus_module_result_string(
-    rictus_module_result_t result
+const char *
+stnlabz_module_result_string(
+    stnlabz_module_result_t result
 )
 {
     switch (
         result
-        )
+    )
     {
-    case RICTUS_MODULE_OK:
+        case STNLABZ_MODULE_OK:
 
-        return "OK";
-
-
-    case RICTUS_MODULE_ERR_INVALID_ARGUMENT:
-
-        return "INVALID_ARGUMENT";
+            return "OK";
 
 
-    case RICTUS_MODULE_ERR_INVALID_IDENTITY:
+        case STNLABZ_MODULE_ERR_INVALID_ARGUMENT:
 
-        return "INVALID_IDENTITY";
-
-
-    case RICTUS_MODULE_ERR_DUPLICATE:
-
-        return "DUPLICATE";
+            return "INVALID_ARGUMENT";
 
 
-    case RICTUS_MODULE_ERR_REGISTRY_FULL:
+        case STNLABZ_MODULE_ERR_INVALID_IDENTITY:
 
-        return "REGISTRY_FULL";
-
-
-    case RICTUS_MODULE_ERR_NOT_FOUND:
-
-        return "NOT_FOUND";
+            return "INVALID_IDENTITY";
 
 
-    case RICTUS_MODULE_ERR_INCOMPATIBLE:
+        case STNLABZ_MODULE_ERR_DUPLICATE:
 
-        return "INCOMPATIBLE";
-
-
-    case RICTUS_MODULE_ERR_INVALID_STATE:
-
-        return "INVALID_STATE";
+            return "DUPLICATE";
 
 
-    case RICTUS_MODULE_ERR_QUALIFICATION:
+        case STNLABZ_MODULE_ERR_REGISTRY_FULL:
 
-        return "QUALIFICATION_FAILED";
-
-
-    case RICTUS_MODULE_ERR_NOT_QUALIFIED:
-
-        return "NOT_QUALIFIED";
+            return "REGISTRY_FULL";
 
 
-    case RICTUS_MODULE_ERR_NOT_AUTHORIZED:
+        case STNLABZ_MODULE_ERR_NOT_FOUND:
 
-        return "NOT_AUTHORIZED";
-
-
-    case RICTUS_MODULE_ERR_QUARANTINED:
-
-        return "QUARANTINED";
+            return "NOT_FOUND";
 
 
-    case RICTUS_MODULE_ERR_AUDIT_FULL:
+        case STNLABZ_MODULE_ERR_INCOMPATIBLE:
 
-        return "AUDIT_FULL";
-
-
-    case RICTUS_MODULE_ERR_START_FAILED:
-
-        return "START_FAILED";
+            return "INCOMPATIBLE";
 
 
-    case RICTUS_MODULE_ERR_STOP_FAILED:
+        case STNLABZ_MODULE_ERR_INVALID_STATE:
 
-        return "STOP_FAILED";
+            return "INVALID_STATE";
 
 
-    default:
+        case STNLABZ_MODULE_ERR_QUALIFICATION:
 
-        return "UNKNOWN";
+            return "QUALIFICATION_FAILED";
+
+
+        case STNLABZ_MODULE_ERR_NOT_QUALIFIED:
+
+            return "NOT_QUALIFIED";
+
+
+        case STNLABZ_MODULE_ERR_NOT_AUTHORIZED:
+
+            return "NOT_AUTHORIZED";
+
+
+        case STNLABZ_MODULE_ERR_QUARANTINED:
+
+            return "QUARANTINED";
+
+
+        case STNLABZ_MODULE_ERR_AUDIT_FULL:
+
+            return "AUDIT_FULL";
+
+
+        case STNLABZ_MODULE_ERR_START_FAILED:
+
+            return "START_FAILED";
+
+
+        case STNLABZ_MODULE_ERR_STOP_FAILED:
+
+            return "STOP_FAILED";
+
+
+        default:
+
+            return "UNKNOWN";
     }
 }
