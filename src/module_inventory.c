@@ -1,6 +1,6 @@
 /*
  * STN-LABZ
- * Rictus Core
+ * Module ABI
  *
  * module_inventory.c
  *
@@ -19,7 +19,7 @@
 #include "module_inventory.h"
 
 
-#define RICTUS_MODULE_INVENTORY_FILENAME \
+#define STNLABZ_MODULE_INVENTORY_FILENAME \
     "module_inventory.conf"
 
 
@@ -29,8 +29,8 @@
  * ------------------------------------------------
  */
 
-static int rictus_module_inventory_record_valid(
-    const rictus_module_inventory_record_t *record
+static int stnlabz_module_inventory_record_valid(
+    const stnlabz_module_inventory_record_t *record
 )
 {
     if (
@@ -54,7 +54,7 @@ static int rictus_module_inventory_record_valid(
         record
             ->qualification
             .tests_executed <
-        RICTUS_MODULE_MIN_TESTS
+        STNLABZ_MODULE_MIN_TESTS
     )
     {
         return 0;
@@ -123,9 +123,9 @@ static int rictus_module_inventory_record_valid(
  * ------------------------------------------------
  */
 
-static rictus_module_inventory_result_t
-rictus_module_inventory_save(
-    const rictus_module_inventory_t *inventory
+static stnlabz_module_inventory_result_t
+stnlabz_module_inventory_save(
+    const stnlabz_module_inventory_t *inventory
 )
 {
     FILE *file =
@@ -141,7 +141,7 @@ rictus_module_inventory_save(
     )
     {
         return
-            RICTUS_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -155,7 +155,7 @@ rictus_module_inventory_save(
     )
     {
         return
-            RICTUS_MODULE_INVENTORY_ERR_OPEN_FAILED;
+            STNLABZ_MODULE_INVENTORY_ERR_OPEN_FAILED;
     }
 
 
@@ -165,7 +165,7 @@ rictus_module_inventory_save(
         ++index
     )
     {
-        const rictus_module_inventory_record_t *record;
+        const stnlabz_module_inventory_record_t *record;
 
         int written;
 
@@ -219,7 +219,7 @@ rictus_module_inventory_save(
             );
 
             return
-                RICTUS_MODULE_INVENTORY_ERR_WRITE_FAILED;
+                STNLABZ_MODULE_INVENTORY_ERR_WRITE_FAILED;
         }
     }
 
@@ -235,7 +235,7 @@ rictus_module_inventory_save(
         );
 
         return
-            RICTUS_MODULE_INVENTORY_ERR_WRITE_FAILED;
+            STNLABZ_MODULE_INVENTORY_ERR_WRITE_FAILED;
     }
 
 
@@ -246,12 +246,12 @@ rictus_module_inventory_save(
     )
     {
         return
-            RICTUS_MODULE_INVENTORY_ERR_WRITE_FAILED;
+            STNLABZ_MODULE_INVENTORY_ERR_WRITE_FAILED;
     }
 
 
     return
-        RICTUS_MODULE_INVENTORY_OK;
+        STNLABZ_MODULE_INVENTORY_OK;
 }
 
 
@@ -261,8 +261,8 @@ rictus_module_inventory_save(
  * ------------------------------------------------
  */
 
-void rictus_module_inventory_init(
-    rictus_module_inventory_t *inventory
+void stnlabz_module_inventory_init(
+    stnlabz_module_inventory_t *inventory
 )
 {
     if (
@@ -292,9 +292,9 @@ void rictus_module_inventory_init(
  * module directory.
  */
 
-rictus_module_inventory_result_t
-rictus_module_inventory_configure(
-    rictus_module_inventory_t *inventory,
+stnlabz_module_inventory_result_t
+stnlabz_module_inventory_configure(
+    stnlabz_module_inventory_t *inventory,
     const char *state_path
 )
 {
@@ -308,7 +308,7 @@ rictus_module_inventory_configure(
     )
     {
         return
-            RICTUS_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -318,7 +318,7 @@ rictus_module_inventory_configure(
             sizeof(inventory->path),
             "%s\\%s",
             state_path,
-            RICTUS_MODULE_INVENTORY_FILENAME
+            STNLABZ_MODULE_INVENTORY_FILENAME
         );
 
 
@@ -332,12 +332,12 @@ rictus_module_inventory_configure(
             '\0';
 
         return
-            RICTUS_MODULE_INVENTORY_ERR_PATH_TOO_LONG;
+            STNLABZ_MODULE_INVENTORY_ERR_PATH_TOO_LONG;
     }
 
 
     return
-        RICTUS_MODULE_INVENTORY_OK;
+        STNLABZ_MODULE_INVENTORY_OK;
 }
 
 
@@ -354,9 +354,9 @@ rictus_module_inventory_configure(
  * Malformed inventory is rejected in its entirety.
  */
 
-rictus_module_inventory_result_t
-rictus_module_inventory_load(
-    rictus_module_inventory_t *inventory
+stnlabz_module_inventory_result_t
+stnlabz_module_inventory_load(
+    stnlabz_module_inventory_t *inventory
 )
 {
     FILE *file =
@@ -374,7 +374,7 @@ rictus_module_inventory_load(
     )
     {
         return
-            RICTUS_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -398,7 +398,7 @@ rictus_module_inventory_load(
          */
 
         return
-            RICTUS_MODULE_INVENTORY_OK;
+            STNLABZ_MODULE_INVENTORY_OK;
     }
 
 
@@ -410,7 +410,7 @@ rictus_module_inventory_load(
         ) != NULL
     )
     {
-        rictus_module_inventory_record_t record;
+        stnlabz_module_inventory_record_t record;
 
         int fields;
 
@@ -473,12 +473,12 @@ rictus_module_inventory_load(
                 0;
 
             return
-                RICTUS_MODULE_INVENTORY_ERR_INVALID_FORMAT;
+                STNLABZ_MODULE_INVENTORY_ERR_INVALID_FORMAT;
         }
 
 
         if (
-            !rictus_module_inventory_record_valid(
+            !stnlabz_module_inventory_record_valid(
                 &record
             )
         )
@@ -491,13 +491,13 @@ rictus_module_inventory_load(
                 0;
 
             return
-                RICTUS_MODULE_INVENTORY_ERR_INVALID_FORMAT;
+                STNLABZ_MODULE_INVENTORY_ERR_INVALID_FORMAT;
         }
 
 
         if (
             inventory->count >=
-            RICTUS_MODULE_INVENTORY_MAX
+            STNLABZ_MODULE_INVENTORY_MAX
         )
         {
             fclose(
@@ -508,7 +508,7 @@ rictus_module_inventory_load(
                 0;
 
             return
-                RICTUS_MODULE_INVENTORY_ERR_FULL;
+                STNLABZ_MODULE_INVENTORY_ERR_FULL;
         }
 
 
@@ -536,7 +536,7 @@ rictus_module_inventory_load(
             0;
 
         return
-            RICTUS_MODULE_INVENTORY_ERR_READ_FAILED;
+            STNLABZ_MODULE_INVENTORY_ERR_READ_FAILED;
     }
 
 
@@ -546,7 +546,7 @@ rictus_module_inventory_load(
 
 
     return
-        RICTUS_MODULE_INVENTORY_OK;
+        STNLABZ_MODULE_INVENTORY_OK;
 }
 
 
@@ -556,14 +556,14 @@ rictus_module_inventory_load(
  * ------------------------------------------------
  */
 
-rictus_module_inventory_result_t
-rictus_module_inventory_store(
-    rictus_module_inventory_t *inventory,
-    const rictus_module_descriptor_t *descriptor,
-    const rictus_module_qualification_result_t *qualification
+stnlabz_module_inventory_result_t
+stnlabz_module_inventory_store(
+    stnlabz_module_inventory_t *inventory,
+    const stnlabz_module_descriptor_t *descriptor,
+    const stnlabz_module_qualification_result_t *qualification
 )
 {
-    rictus_module_inventory_record_t *record =
+    stnlabz_module_inventory_record_t *record =
         NULL;
 
     size_t index;
@@ -578,7 +578,7 @@ rictus_module_inventory_store(
     )
     {
         return
-            RICTUS_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -617,11 +617,11 @@ rictus_module_inventory_store(
     {
         if (
             inventory->count >=
-            RICTUS_MODULE_INVENTORY_MAX
+            STNLABZ_MODULE_INVENTORY_MAX
         )
         {
             return
-                RICTUS_MODULE_INVENTORY_ERR_FULL;
+                STNLABZ_MODULE_INVENTORY_ERR_FULL;
         }
 
 
@@ -655,7 +655,7 @@ rictus_module_inventory_store(
     )
     {
         return
-            RICTUS_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_INVENTORY_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -688,18 +688,18 @@ rictus_module_inventory_store(
 
 
     if (
-        !rictus_module_inventory_record_valid(
+        !stnlabz_module_inventory_record_valid(
             record
         )
     )
     {
         return
-            RICTUS_MODULE_INVENTORY_ERR_INVALID_FORMAT;
+            STNLABZ_MODULE_INVENTORY_ERR_INVALID_FORMAT;
     }
 
 
     return
-        rictus_module_inventory_save(
+        stnlabz_module_inventory_save(
             inventory
         );
 }
@@ -717,10 +717,10 @@ rictus_module_inventory_store(
  * from an older revision.
  */
 
-const rictus_module_inventory_record_t *
-rictus_module_inventory_find(
-    const rictus_module_inventory_t *inventory,
-    const rictus_module_descriptor_t *descriptor
+const stnlabz_module_inventory_record_t *
+stnlabz_module_inventory_find(
+    const stnlabz_module_inventory_t *inventory,
+    const stnlabz_module_descriptor_t *descriptor
 )
 {
     size_t index;
@@ -741,7 +741,7 @@ rictus_module_inventory_find(
         ++index
     )
     {
-        const rictus_module_inventory_record_t *record;
+        const stnlabz_module_inventory_record_t *record;
 
 
         record =
@@ -795,7 +795,7 @@ rictus_module_inventory_find(
 
 
         if (
-            !rictus_module_inventory_record_valid(
+            !stnlabz_module_inventory_record_valid(
                 record
             )
         )
@@ -818,50 +818,50 @@ rictus_module_inventory_find(
  * ------------------------------------------------
  */
 
-const char *rictus_module_inventory_result_string(
-    rictus_module_inventory_result_t result
+const char *stnlabz_module_inventory_result_string(
+    stnlabz_module_inventory_result_t result
 )
 {
     switch (
         result
     )
     {
-        case RICTUS_MODULE_INVENTORY_OK:
+        case STNLABZ_MODULE_INVENTORY_OK:
 
             return "OK";
 
 
-        case RICTUS_MODULE_INVENTORY_ERR_INVALID_ARGUMENT:
+        case STNLABZ_MODULE_INVENTORY_ERR_INVALID_ARGUMENT:
 
             return "INVALID_ARGUMENT";
 
 
-        case RICTUS_MODULE_INVENTORY_ERR_PATH_TOO_LONG:
+        case STNLABZ_MODULE_INVENTORY_ERR_PATH_TOO_LONG:
 
             return "PATH_TOO_LONG";
 
 
-        case RICTUS_MODULE_INVENTORY_ERR_OPEN_FAILED:
+        case STNLABZ_MODULE_INVENTORY_ERR_OPEN_FAILED:
 
             return "OPEN_FAILED";
 
 
-        case RICTUS_MODULE_INVENTORY_ERR_READ_FAILED:
+        case STNLABZ_MODULE_INVENTORY_ERR_READ_FAILED:
 
             return "READ_FAILED";
 
 
-        case RICTUS_MODULE_INVENTORY_ERR_WRITE_FAILED:
+        case STNLABZ_MODULE_INVENTORY_ERR_WRITE_FAILED:
 
             return "WRITE_FAILED";
 
 
-        case RICTUS_MODULE_INVENTORY_ERR_INVALID_FORMAT:
+        case STNLABZ_MODULE_INVENTORY_ERR_INVALID_FORMAT:
 
             return "INVALID_FORMAT";
 
 
-        case RICTUS_MODULE_INVENTORY_ERR_FULL:
+        case STNLABZ_MODULE_INVENTORY_ERR_FULL:
 
             return "FULL";
 

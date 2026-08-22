@@ -1,6 +1,6 @@
 /*
  * STN-LABZ
- * Rictus Core
+ * Module ABI
  *
  * module_loader_win.c
  *
@@ -11,7 +11,7 @@
  *
  * Core loads only through the established ABI:
  *
- *     rictus_module_get_descriptor()
+ *     stnlabz_module_get_descriptor()
  *
  * The returned descriptor is then processed by
  * Core-controlled verification and qualification.
@@ -32,8 +32,8 @@
  * ------------------------------------------------
  */
 
-static int rictus_module_loader_descriptor_valid(
-    const rictus_module_descriptor_t *descriptor
+static int stnlabz_module_loader_descriptor_valid(
+    const stnlabz_module_descriptor_t *descriptor
 )
 {
     size_t id_length;
@@ -102,8 +102,8 @@ static int rictus_module_loader_descriptor_valid(
  * ------------------------------------------------
  */
 
-void rictus_module_loader_init(
-    rictus_module_loader_t *loader
+void stnlabz_module_loader_init(
+    stnlabz_module_loader_t *loader
 )
 {
     if (
@@ -128,9 +128,9 @@ void rictus_module_loader_init(
  * ------------------------------------------------
  */
 
-const rictus_loaded_module_t *
-rictus_module_loader_find(
-    const rictus_module_loader_t *loader,
+const stnlabz_loaded_module_t *
+stnlabz_module_loader_find(
+    const stnlabz_module_loader_t *loader,
     const char *module_id
 )
 {
@@ -177,25 +177,25 @@ rictus_module_loader_find(
  * ------------------------------------------------
  */
 
-rictus_module_loader_result_t
-rictus_module_loader_load(
-    rictus_module_loader_t *loader,
+stnlabz_module_loader_result_t
+stnlabz_module_loader_load(
+    stnlabz_module_loader_t *loader,
     const char *expected_module_id,
     const char *dll_path,
-    const rictus_module_descriptor_t **descriptor_out
+    const stnlabz_module_descriptor_t **descriptor_out
 )
 {
     HMODULE handle;
 
     FARPROC export_address;
 
-    rictus_module_get_descriptor_fn
+    stnlabz_module_get_descriptor_fn
         get_descriptor;
 
-    const rictus_module_descriptor_t
+    const stnlabz_module_descriptor_t
         *descriptor;
 
-    rictus_loaded_module_t
+    stnlabz_loaded_module_t
         *loaded;
 
     size_t id_length;
@@ -213,7 +213,7 @@ rictus_module_loader_load(
     )
     {
         return
-            RICTUS_MODULE_LOADER_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_LOADER_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -222,24 +222,24 @@ rictus_module_loader_load(
 
 
     if (
-        rictus_module_loader_find(
+        stnlabz_module_loader_find(
             loader,
             expected_module_id
         ) != NULL
     )
     {
         return
-            RICTUS_MODULE_LOADER_ERR_ALREADY_LOADED;
+            STNLABZ_MODULE_LOADER_ERR_ALREADY_LOADED;
     }
 
 
     if (
         loader->count >=
-        RICTUS_MODULE_LOADER_MAX
+        STNLABZ_MODULE_LOADER_MAX
     )
     {
         return
-            RICTUS_MODULE_LOADER_ERR_FULL;
+            STNLABZ_MODULE_LOADER_ERR_FULL;
     }
 
 
@@ -258,14 +258,14 @@ rictus_module_loader_load(
     if (
         id_length == 0 ||
         id_length >=
-            RICTUS_MODULE_ID_MAX ||
+            STNLABZ_MODULE_ID_MAX ||
         path_length == 0 ||
         path_length >=
-            RICTUS_MODULE_LOADER_PATH_MAX
+            STNLABZ_MODULE_LOADER_PATH_MAX
     )
     {
         return
-            RICTUS_MODULE_LOADER_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_LOADER_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -298,7 +298,7 @@ rictus_module_loader_load(
     )
     {
         return
-            RICTUS_MODULE_LOADER_ERR_LOAD_FAILED;
+            STNLABZ_MODULE_LOADER_ERR_LOAD_FAILED;
     }
 
 
@@ -311,7 +311,7 @@ rictus_module_loader_load(
     export_address =
         GetProcAddress(
             handle,
-            RICTUS_MODULE_DESCRIPTOR_EXPORT
+            STNLABZ_MODULE_DESCRIPTOR_EXPORT
         );
 
 
@@ -325,12 +325,12 @@ rictus_module_loader_load(
 
 
         return
-            RICTUS_MODULE_LOADER_ERR_EXPORT_MISSING;
+            STNLABZ_MODULE_LOADER_ERR_EXPORT_MISSING;
     }
 
 
     get_descriptor =
-        (rictus_module_get_descriptor_fn)
+        (stnlabz_module_get_descriptor_fn)
         export_address;
 
 
@@ -345,7 +345,7 @@ rictus_module_loader_load(
 
 
     if (
-        !rictus_module_loader_descriptor_valid(
+        !stnlabz_module_loader_descriptor_valid(
             descriptor
         )
     )
@@ -356,7 +356,7 @@ rictus_module_loader_load(
 
 
         return
-            RICTUS_MODULE_LOADER_ERR_DESCRIPTOR_INVALID;
+            STNLABZ_MODULE_LOADER_ERR_DESCRIPTOR_INVALID;
     }
 
 
@@ -378,7 +378,7 @@ rictus_module_loader_load(
 
 
         return
-            RICTUS_MODULE_LOADER_ERR_ID_MISMATCH;
+            STNLABZ_MODULE_LOADER_ERR_ID_MISMATCH;
     }
 
 
@@ -434,7 +434,7 @@ rictus_module_loader_load(
 
 
     return
-        RICTUS_MODULE_LOADER_OK;
+        STNLABZ_MODULE_LOADER_OK;
 }
 
 
@@ -444,9 +444,9 @@ rictus_module_loader_load(
  * ------------------------------------------------
  */
 
-rictus_module_loader_result_t
-rictus_module_loader_unload(
-    rictus_module_loader_t *loader,
+stnlabz_module_loader_result_t
+stnlabz_module_loader_unload(
+    stnlabz_module_loader_t *loader,
     const char *module_id
 )
 {
@@ -460,7 +460,7 @@ rictus_module_loader_unload(
     )
     {
         return
-            RICTUS_MODULE_LOADER_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_LOADER_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -529,13 +529,13 @@ rictus_module_loader_unload(
 
 
             return
-                RICTUS_MODULE_LOADER_OK;
+                STNLABZ_MODULE_LOADER_OK;
         }
     }
 
 
     return
-        RICTUS_MODULE_LOADER_ERR_NOT_FOUND;
+        STNLABZ_MODULE_LOADER_ERR_NOT_FOUND;
 }
 
 
@@ -545,8 +545,8 @@ rictus_module_loader_unload(
  * ------------------------------------------------
  */
 
-void rictus_module_loader_unload_all(
-    rictus_module_loader_t *loader
+void stnlabz_module_loader_unload_all(
+    stnlabz_module_loader_t *loader
 )
 {
     if (
@@ -603,55 +603,55 @@ void rictus_module_loader_unload_all(
  */
 
 const char *
-rictus_module_loader_result_string(
-    rictus_module_loader_result_t result
+stnlabz_module_loader_result_string(
+    stnlabz_module_loader_result_t result
 )
 {
     switch (
         result
     )
     {
-        case RICTUS_MODULE_LOADER_OK:
+        case STNLABZ_MODULE_LOADER_OK:
 
             return "OK";
 
 
-        case RICTUS_MODULE_LOADER_ERR_INVALID_ARGUMENT:
+        case STNLABZ_MODULE_LOADER_ERR_INVALID_ARGUMENT:
 
             return "INVALID_ARGUMENT";
 
 
-        case RICTUS_MODULE_LOADER_ERR_FULL:
+        case STNLABZ_MODULE_LOADER_ERR_FULL:
 
             return "FULL";
 
 
-        case RICTUS_MODULE_LOADER_ERR_ALREADY_LOADED:
+        case STNLABZ_MODULE_LOADER_ERR_ALREADY_LOADED:
 
             return "ALREADY_LOADED";
 
 
-        case RICTUS_MODULE_LOADER_ERR_LOAD_FAILED:
+        case STNLABZ_MODULE_LOADER_ERR_LOAD_FAILED:
 
             return "LOAD_FAILED";
 
 
-        case RICTUS_MODULE_LOADER_ERR_EXPORT_MISSING:
+        case STNLABZ_MODULE_LOADER_ERR_EXPORT_MISSING:
 
             return "EXPORT_MISSING";
 
 
-        case RICTUS_MODULE_LOADER_ERR_DESCRIPTOR_INVALID:
+        case STNLABZ_MODULE_LOADER_ERR_DESCRIPTOR_INVALID:
 
             return "DESCRIPTOR_INVALID";
 
 
-        case RICTUS_MODULE_LOADER_ERR_ID_MISMATCH:
+        case STNLABZ_MODULE_LOADER_ERR_ID_MISMATCH:
 
             return "ID_MISMATCH";
 
 
-        case RICTUS_MODULE_LOADER_ERR_NOT_FOUND:
+        case STNLABZ_MODULE_LOADER_ERR_NOT_FOUND:
 
             return "NOT_FOUND";
 

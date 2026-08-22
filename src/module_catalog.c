@@ -1,6 +1,6 @@
 /*
  * STN-LABZ
- * Rictus Core
+ * Module ABI
  *
  * module_catalog.c
  *
@@ -16,8 +16,8 @@
 #include "module_catalog.h"
 
 
-void rictus_module_catalog_init(
-    rictus_module_catalog_t *catalog
+void stnlabz_module_catalog_init(
+    stnlabz_module_catalog_t *catalog
 )
 {
     if (
@@ -36,9 +36,9 @@ void rictus_module_catalog_init(
 }
 
 
-rictus_module_result_t rictus_module_catalog_register(
-    rictus_module_catalog_t *catalog,
-    const rictus_module_descriptor_t *descriptor
+stnlabz_module_result_t stnlabz_module_catalog_register(
+    stnlabz_module_catalog_t *catalog,
+    const stnlabz_module_descriptor_t *descriptor
 )
 {
     size_t index;
@@ -53,7 +53,7 @@ rictus_module_result_t rictus_module_catalog_register(
     )
     {
         return
-            RICTUS_MODULE_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -73,18 +73,18 @@ rictus_module_result_t rictus_module_catalog_register(
         )
         {
             return
-                RICTUS_MODULE_ERR_DUPLICATE;
+                STNLABZ_MODULE_ERR_DUPLICATE;
         }
     }
 
 
     if (
         catalog->count >=
-        RICTUS_MODULE_CATALOG_MAX
+        STNLABZ_MODULE_CATALOG_MAX
     )
     {
         return
-            RICTUS_MODULE_ERR_REGISTRY_FULL;
+            STNLABZ_MODULE_ERR_REGISTRY_FULL;
     }
 
 
@@ -98,12 +98,12 @@ rictus_module_result_t rictus_module_catalog_register(
 
 
     return
-        RICTUS_MODULE_OK;
+        STNLABZ_MODULE_OK;
 }
 
 
-const rictus_module_descriptor_t *rictus_module_catalog_find(
-    const rictus_module_catalog_t *catalog,
+const stnlabz_module_descriptor_t *stnlabz_module_catalog_find(
+    const stnlabz_module_catalog_t *catalog,
     const char *module_id
 )
 {

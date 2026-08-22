@@ -1,6 +1,6 @@
 /*
  * STN-LABZ
- * Rictus Core
+ * Module ABI
  *
  * module_discovery_win.c
  *
@@ -8,7 +8,7 @@
  *
  * Expected layout:
  *
- *     <rictus.exe directory>\
+ *     <host executable directory>\
  *         modules\
  *             intelligence\
  *                 module.conf
@@ -36,10 +36,10 @@
 #include "module_discovery.h"
 
 
-#define RICTUS_DISCOVERY_PATH_MAX \
+#define STNLABZ_DISCOVERY_PATH_MAX \
     1024
 
-#define RICTUS_MODULE_CONF_NAME \
+#define STNLABZ_MODULE_CONF_NAME \
     "module.conf"
 
 
@@ -49,7 +49,7 @@
  * ------------------------------------------------
  */
 
-static int rictus_discovery_join_path(
+static int stnlabz_discovery_join_path(
     char *output,
     size_t output_size,
     const char *left,
@@ -100,14 +100,14 @@ static int rictus_discovery_join_path(
  * ------------------------------------------------
  */
 
-rictus_module_result_t
-rictus_module_discovery_get_path(
+stnlabz_module_result_t
+stnlabz_module_discovery_get_path(
     char *modules_path,
     size_t modules_path_size
 )
 {
     char executable_path[
-        RICTUS_DISCOVERY_PATH_MAX
+        STNLABZ_DISCOVERY_PATH_MAX
     ];
 
     char *separator;
@@ -123,7 +123,7 @@ rictus_module_discovery_get_path(
     )
     {
         return
-            RICTUS_MODULE_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -149,7 +149,7 @@ rictus_module_discovery_get_path(
     )
     {
         return
-            RICTUS_MODULE_ERR_NOT_FOUND;
+            STNLABZ_MODULE_ERR_NOT_FOUND;
     }
 
 
@@ -177,7 +177,7 @@ rictus_module_discovery_get_path(
     )
     {
         return
-            RICTUS_MODULE_ERR_NOT_FOUND;
+            STNLABZ_MODULE_ERR_NOT_FOUND;
     }
 
 
@@ -201,12 +201,12 @@ rictus_module_discovery_get_path(
     )
     {
         return
-            RICTUS_MODULE_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_ERR_INVALID_ARGUMENT;
     }
 
 
     return
-        RICTUS_MODULE_OK;
+        STNLABZ_MODULE_OK;
 }
 
 
@@ -226,7 +226,7 @@ rictus_module_discovery_get_path(
  * rejected.
  */
 
-static int rictus_discovery_read_module_id(
+static int stnlabz_discovery_read_module_id(
     const char *config_path,
     char *module_id,
     size_t module_id_size
@@ -424,36 +424,36 @@ static int rictus_discovery_read_module_id(
  * ------------------------------------------------
  */
 
-rictus_module_result_t
-rictus_module_discovery_scan(
-    rictus_module_registry_t *registry,
-    rictus_module_loader_t *loader,
+stnlabz_module_result_t
+stnlabz_module_discovery_scan(
+    stnlabz_module_registry_t *registry,
+    stnlabz_module_loader_t *loader,
     const char *modules_path,
-    rictus_module_discovery_report_t *report
+    stnlabz_module_discovery_report_t *report
 )
 {
     char search_path[
-        RICTUS_DISCOVERY_PATH_MAX
+        STNLABZ_DISCOVERY_PATH_MAX
     ];
 
     char directory_path[
-        RICTUS_DISCOVERY_PATH_MAX
+        STNLABZ_DISCOVERY_PATH_MAX
     ];
 
     char config_path[
-        RICTUS_DISCOVERY_PATH_MAX
+        STNLABZ_DISCOVERY_PATH_MAX
     ];
 
     char dll_name[
-        RICTUS_MODULE_ID_MAX + 8
+        STNLABZ_MODULE_ID_MAX + 8
     ];
 
     char dll_path[
-        RICTUS_DISCOVERY_PATH_MAX
+        STNLABZ_DISCOVERY_PATH_MAX
     ];
 
     char module_id[
-        RICTUS_MODULE_ID_MAX
+        STNLABZ_MODULE_ID_MAX
     ];
 
     WIN32_FIND_DATAA find_data;
@@ -471,7 +471,7 @@ rictus_module_discovery_scan(
     )
     {
         return
-            RICTUS_MODULE_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -498,7 +498,7 @@ rictus_module_discovery_scan(
     )
     {
         return
-            RICTUS_MODULE_ERR_INVALID_ARGUMENT;
+            STNLABZ_MODULE_ERR_INVALID_ARGUMENT;
     }
 
 
@@ -515,19 +515,19 @@ rictus_module_discovery_scan(
     )
     {
         return
-            RICTUS_MODULE_ERR_NOT_FOUND;
+            STNLABZ_MODULE_ERR_NOT_FOUND;
     }
 
 
     do
     {
-        const rictus_module_descriptor_t
+        const stnlabz_module_descriptor_t
             *descriptor;
 
-        rictus_module_loader_result_t
+        stnlabz_module_loader_result_t
             loader_result;
 
-        rictus_module_result_t
+        stnlabz_module_result_t
             registry_result;
 
 
@@ -572,7 +572,7 @@ rictus_module_discovery_scan(
          */
 
         if (
-            !rictus_discovery_join_path(
+            !stnlabz_discovery_join_path(
                 directory_path,
                 sizeof(directory_path),
                 modules_path,
@@ -594,11 +594,11 @@ rictus_module_discovery_scan(
          */
 
         if (
-            !rictus_discovery_join_path(
+            !stnlabz_discovery_join_path(
                 config_path,
                 sizeof(config_path),
                 directory_path,
-                RICTUS_MODULE_CONF_NAME
+                STNLABZ_MODULE_CONF_NAME
             )
         )
         {
@@ -614,7 +614,7 @@ rictus_module_discovery_scan(
          */
 
         if (
-            !rictus_discovery_read_module_id(
+            !stnlabz_discovery_read_module_id(
                 config_path,
                 module_id,
                 sizeof(module_id)
@@ -663,7 +663,7 @@ rictus_module_discovery_scan(
          */
 
         if (
-            !rictus_discovery_join_path(
+            !stnlabz_discovery_join_path(
                 dll_path,
                 sizeof(dll_path),
                 directory_path,
@@ -696,7 +696,7 @@ rictus_module_discovery_scan(
          */
 
         loader_result =
-            rictus_module_loader_load(
+            stnlabz_module_loader_load(
                 loader,
                 module_id,
                 dll_path,
@@ -706,7 +706,7 @@ rictus_module_discovery_scan(
 
         if (
             loader_result !=
-            RICTUS_MODULE_LOADER_OK
+            STNLABZ_MODULE_LOADER_OK
         )
         {
             report
@@ -732,7 +732,7 @@ rictus_module_discovery_scan(
          */
 
         registry_result =
-            rictus_module_registry_discover(
+            stnlabz_module_registry_discover(
                 registry,
                 descriptor
             );
@@ -740,7 +740,7 @@ rictus_module_discovery_scan(
 
         if (
             registry_result !=
-            RICTUS_MODULE_OK
+            STNLABZ_MODULE_OK
         )
         {
             /*
@@ -751,7 +751,7 @@ rictus_module_discovery_scan(
              */
 
             (void)
-            rictus_module_loader_unload(
+            stnlabz_module_loader_unload(
                 loader,
                 module_id
             );
@@ -781,5 +781,5 @@ rictus_module_discovery_scan(
 
 
     return
-        RICTUS_MODULE_OK;
+        STNLABZ_MODULE_OK;
 }
