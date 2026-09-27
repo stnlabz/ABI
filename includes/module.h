@@ -7,35 +7,71 @@
  *
  * module.h
  *
- * Cross-application module contract.
+ * Cross-application module ABI definitions.
  */
 
-#include <stddef.h>
-
-
-#define STNLABZ_MODULE_ID_MAX       64
-#define STNLABZ_MODULE_NAME_MAX     64
-#define STNLABZ_MODULE_PATH_MAX     1024
-#define STNLABZ_MODULE_SHA256_HEX   65
-#define STNLABZ_MODULE_MIN_TESTS    10
+#define STNLABZ_MODULE_ID_MAX 64
+#define STNLABZ_MODULE_NAME_MAX 64
+#define STNLABZ_MODULE_COMMAND_NAME_MAX 64
+#define STNLABZ_MODULE_COMMAND_ARGUMENTS_MAX 512
+#define STNLABZ_MODULE_COMMAND_SENDER_MAX 128
+#define STNLABZ_MODULE_COMMAND_ACCOUNT_MAX 128
+#define STNLABZ_MODULE_MIN_TESTS 10
 
 
 /*
  * ------------------------------------------------
- * MODULE API VERSION
+ * CORE MODULE API
+ * ------------------------------------------------
+ */
+
+#define STNLABZ_MODULE_API_MAJOR 1
+#define STNLABZ_MODULE_API_MINOR 4
+
+
+/*
+ * ------------------------------------------------
+ * MODULE LIFECYCLE
  * ------------------------------------------------
  *
- * ABI package revision 1.4 retains descriptor
- * compatibility with Module API 1.2.
+ * ABI 1.4 adds:
+ *
+ *     STOPPED
+ *     UNREGISTERED
+ *
+ * STOPPED is a persistent registry state.
+ *
+ * UNREGISTERED is the terminal Core-owned removal
+ * transition. Core audits the transition before
+ * removing the module record from the registry.
  */
 
-#define STNLABZ_MODULE_API_MAJOR    1
-#define STNLABZ_MODULE_API_MINOR    2
+typedef enum
+{
+    STNLABZ_MODULE_STATE_DISCOVERED = 0,
+
+    STNLABZ_MODULE_STATE_UNVERIFIED,
+
+    STNLABZ_MODULE_STATE_TESTING,
+
+    STNLABZ_MODULE_STATE_QUALIFIED,
+
+    STNLABZ_MODULE_STATE_ACTIVE,
+
+    STNLABZ_MODULE_STATE_STOPPED,
+
+    STNLABZ_MODULE_STATE_FAILED,
+
+    STNLABZ_MODULE_STATE_QUARANTINED,
+
+    STNLABZ_MODULE_STATE_UNREGISTERED
+
+} stnlabz_module_state_t;
 
 
 /*
  * ------------------------------------------------
- * MODULE RESULT
+ * MODULE RESULTS
  * ------------------------------------------------
  */
 
@@ -76,43 +112,8 @@ typedef enum
 
 /*
  * ------------------------------------------------
- * MODULE STATE
- * ------------------------------------------------
- */
-
-typedef enum
-{
-    STNLABZ_MODULE_STATE_DISCOVERED = 0,
-
-    STNLABZ_MODULE_STATE_UNVERIFIED,
-
-    STNLABZ_MODULE_STATE_TESTING,
-
-    STNLABZ_MODULE_STATE_QUALIFIED,
-
-    STNLABZ_MODULE_STATE_ACTIVE,
-
-    STNLABZ_MODULE_STATE_STOPPED,
-
-    STNLABZ_MODULE_STATE_FAILED,
-
-    STNLABZ_MODULE_STATE_QUARANTINED,
-
-    STNLABZ_MODULE_STATE_UNREGISTERED
-
-} stnlabz_module_state_t;
-
-
-/*
- * ------------------------------------------------
  * QUALIFICATION RESULT
  * ------------------------------------------------
- *
- * Qualification is evidence produced by the module
- * and evaluated by Core.
- *
- * A module does not determine its own qualification
- * state or activation authority.
  */
 
 typedef struct
@@ -132,19 +133,90 @@ typedef struct
 
 /*
  * ------------------------------------------------
- * HOST INTERFACE
+ * GENERIC COMMAND ABI
  * ------------------------------------------------
  *
- * The shared ABI does not define application-specific
- * host behavior.
+ * Retained for compatibility with hosts that use
+ * command-oriented modules.
  *
- * Applications provide their own context through this
- * boundary without changing the module descriptor.
+ * Hosts that do not expose command services may
+ * leave the corresponding host callbacks NULL.
  */
 
-typedef struct stnlabz_module_host
+typedef struct
 {
-    void *context;
+    char sender[
+        STNLABZ_MODULE_COMMAND_SENDER_MAX
+    ];
+
+    char account[
+        STNLABZ_MODULE_COMMAND_ACCOUNT_MAX
+    ];
+
+    char name[
+        STNLABZ_MODULE_COMMAND_NAME_MAX
+    ];
+
+    char arguments[
+        STNLABZ_MODULE_COMMAND_ARGUMENTS_MAX
+    ];
+
+} stnlabz_module_command_t;
+
+
+typedef int
+(*stnlabz_module_command_reply_fn)(
+    void *reply_context,
+    const char *message
+);
+
+
+typedef stnlabz_module_result_t
+(*stnlabz_module_command_handler_fn)(
+    const stnlabz_module_command_t *command,
+    stnlabz_module_command_reply_fn reply,
+    void *reply_context,
+    void *handler_context
+);
+
+
+/*
+ * ------------------------------------------------
+ * CORE HOST SERVICES
+ * ------------------------------------------------
+ */
+
+typedef int
+(*stnlabz_module_send_message_fn)(
+    const char *message
+);
+
+
+typedef int
+(*stnlabz_module_register_command_fn)(
+    const char *name,
+    stnlabz_module_command_handler_fn handler,
+    void *handler_context
+);
+
+
+typedef int
+(*stnlabz_module_unregister_command_fn)(
+    const char *name,
+    void *handler_context
+);
+
+
+typedef struct
+{
+    stnlabz_module_send_message_fn
+        send_message;
+
+    stnlabz_module_register_command_fn
+        register_command;
+
+    stnlabz_module_unregister_command_fn
+        unregister_command;
 
 } stnlabz_module_host_t;
 
@@ -168,18 +240,13 @@ typedef stnlabz_module_result_t
 
 
 typedef stnlabz_module_result_t
-(*stnlabz_module_stop_fn)(
-    void
-);
+(*stnlabz_module_stop_fn)(void);
 
 
 /*
  * ------------------------------------------------
  * MODULE DESCRIPTOR
  * ------------------------------------------------
- *
- * The descriptor is the stable identity and lifecycle
- * contract exported by a module.
  */
 
 typedef struct
@@ -213,12 +280,6 @@ typedef struct
 
 } stnlabz_module_descriptor_t;
 
-
-/*
- * ------------------------------------------------
- * MODULE UTILITIES
- * ------------------------------------------------
- */
 
 const char *
 stnlabz_module_state_string(
