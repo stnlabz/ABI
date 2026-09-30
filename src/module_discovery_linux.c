@@ -124,6 +124,21 @@ static void stnlabz_discovery_free_names(char **names, size_t count)
     free(names);
 }
 
+static void stnlabz_discovery_report_rejection(
+    const char *directory_name,
+    const char *module_id,
+    const char *stage,
+    const char *reason
+)
+{
+    fprintf(stderr,
+            "[MODULE] REJECTED: directory=%s module=%s stage=%s reason=%s -- Core continuing\n",
+            directory_name != NULL ? directory_name : "unknown",
+            module_id != NULL && module_id[0] != '\0' ? module_id : "unknown",
+            stage != NULL ? stage : "unknown",
+            reason != NULL ? reason : "unknown");
+}
+
 stnlabz_module_result_t
 stnlabz_module_discovery_get_path(
     char *modules_path,
@@ -250,14 +265,22 @@ stnlabz_module_discovery_scan(
         stnlabz_module_result_t registry_result;
         int written;
 
+        module_id[0] = '\0';
         report->directories_examined++;
 
         if (!stnlabz_discovery_join_path(directory_path, sizeof(directory_path),
                                          modules_path, names[index]) ||
             !stnlabz_discovery_join_path(config_path, sizeof(config_path),
-                                         directory_path, STNLABZ_MODULE_CONF_NAME) ||
-            !stnlabz_discovery_read_module_id(config_path, module_id, sizeof(module_id)))
+                                         directory_path, STNLABZ_MODULE_CONF_NAME))
         {
+            stnlabz_discovery_report_rejection(names[index], NULL, "path", "module path too long or invalid");
+            report->modules_rejected++;
+            continue;
+        }
+
+        if (!stnlabz_discovery_read_module_id(config_path, module_id, sizeof(module_id)))
+        {
+            stnlabz_discovery_report_rejection(names[index], NULL, "manifest", "module.conf missing, unreadable, or invalid");
             report->modules_rejected++;
             continue;
         }
@@ -268,6 +291,7 @@ stnlabz_module_discovery_scan(
                                          directory_path, STNLABZ_MODULE_BIN_DIR) ||
             !stnlabz_discovery_join_path(so_path, sizeof(so_path), bin_path, so_name))
         {
+            stnlabz_discovery_report_rejection(names[index], module_id, "binary_path", "module binary path too long or invalid");
             report->modules_rejected++;
             continue;
         }
@@ -275,6 +299,8 @@ stnlabz_module_discovery_scan(
         loader_result = stnlabz_module_loader_load(loader, module_id, so_path, &descriptor);
         if (loader_result != STNLABZ_MODULE_LOADER_OK)
         {
+            stnlabz_discovery_report_rejection(names[index], module_id, "loader",
+                                               stnlabz_module_loader_result_string(loader_result));
             report->modules_rejected++;
             continue;
         }
@@ -283,6 +309,8 @@ stnlabz_module_discovery_scan(
         registry_result = stnlabz_module_registry_discover(registry, descriptor);
         if (registry_result != STNLABZ_MODULE_OK)
         {
+            stnlabz_discovery_report_rejection(names[index], module_id, "registry",
+                                               stnlabz_module_result_string(registry_result));
             (void)stnlabz_module_loader_unload(loader, module_id);
             report->modules_rejected++;
             continue;
