@@ -1,92 +1,53 @@
 #ifndef STNLABZ_MODULE_LOADER_H
 #define STNLABZ_MODULE_LOADER_H
 
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
 #include <stddef.h>
 
 #include "module.h"
 
-
-#define STNLABZ_MODULE_LOADER_MAX \
-    32
-
-#define STNLABZ_MODULE_LOADER_PATH_MAX \
-    1024
-
-#define STNLABZ_MODULE_DESCRIPTOR_EXPORT \
-    "stnlabz_module_get_descriptor"
-
+#define STNLABZ_MODULE_LOADER_MAX 32
+#define STNLABZ_MODULE_LOADER_PATH_MAX 1024
+#define STNLABZ_MODULE_DESCRIPTOR_EXPORT "stnlabz_module_get_descriptor"
 
 typedef enum
 {
     STNLABZ_MODULE_LOADER_OK = 0,
-
     STNLABZ_MODULE_LOADER_ERR_INVALID_ARGUMENT,
-
     STNLABZ_MODULE_LOADER_ERR_FULL,
-
     STNLABZ_MODULE_LOADER_ERR_ALREADY_LOADED,
-
     STNLABZ_MODULE_LOADER_ERR_LOAD_FAILED,
-
     STNLABZ_MODULE_LOADER_ERR_EXPORT_MISSING,
-
     STNLABZ_MODULE_LOADER_ERR_DESCRIPTOR_INVALID,
-
     STNLABZ_MODULE_LOADER_ERR_ID_MISMATCH,
-
     STNLABZ_MODULE_LOADER_ERR_NOT_FOUND
-
 } stnlabz_module_loader_result_t;
-
 
 typedef const stnlabz_module_descriptor_t *
 (*stnlabz_module_get_descriptor_fn)(void);
 
-
 typedef struct
 {
-    HMODULE handle;
-
-    char module_id[
-        STNLABZ_MODULE_ID_MAX
-    ];
-
-    char dll_path[
-        STNLABZ_MODULE_LOADER_PATH_MAX
-    ];
-
+    void *handle;
+    char module_id[STNLABZ_MODULE_ID_MAX];
+    char module_path[STNLABZ_MODULE_LOADER_PATH_MAX];
     const stnlabz_module_descriptor_t *descriptor;
-
 } stnlabz_loaded_module_t;
 
-
 typedef struct
 {
-    stnlabz_loaded_module_t modules[
-        STNLABZ_MODULE_LOADER_MAX
-    ];
-
+    stnlabz_loaded_module_t modules[STNLABZ_MODULE_LOADER_MAX];
     size_t count;
-
 } stnlabz_module_loader_t;
 
-
-void stnlabz_module_loader_init(
-    stnlabz_module_loader_t *loader
-);
-
+void stnlabz_module_loader_init(stnlabz_module_loader_t *loader);
 
 stnlabz_module_loader_result_t
 stnlabz_module_loader_load(
     stnlabz_module_loader_t *loader,
     const char *expected_module_id,
-    const char *dll_path,
+    const char *module_path,
     const stnlabz_module_descriptor_t **descriptor_out
 );
-
 
 stnlabz_module_loader_result_t
 stnlabz_module_loader_unload(
@@ -94,11 +55,7 @@ stnlabz_module_loader_unload(
     const char *module_id
 );
 
-
-void stnlabz_module_loader_unload_all(
-    stnlabz_module_loader_t *loader
-);
-
+void stnlabz_module_loader_unload_all(stnlabz_module_loader_t *loader);
 
 const stnlabz_loaded_module_t *
 stnlabz_module_loader_find(
@@ -106,11 +63,9 @@ stnlabz_module_loader_find(
     const char *module_id
 );
 
-
 const char *
 stnlabz_module_loader_result_string(
     stnlabz_module_loader_result_t result
 );
-
 
 #endif
