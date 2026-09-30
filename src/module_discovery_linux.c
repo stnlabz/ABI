@@ -16,6 +16,7 @@
 
 #define STNLABZ_DISCOVERY_PATH_MAX 1024
 #define STNLABZ_MODULE_CONF_NAME "module.conf"
+#define STNLABZ_MODULE_BIN_DIR "bin"
 
 static int stnlabz_discovery_join_path(
     char *output,
@@ -240,6 +241,7 @@ stnlabz_module_discovery_scan(
     {
         char directory_path[STNLABZ_DISCOVERY_PATH_MAX];
         char config_path[STNLABZ_DISCOVERY_PATH_MAX];
+        char bin_path[STNLABZ_DISCOVERY_PATH_MAX];
         char so_name[STNLABZ_MODULE_ID_MAX + 4];
         char so_path[STNLABZ_DISCOVERY_PATH_MAX];
         char module_id[STNLABZ_MODULE_ID_MAX];
@@ -262,7 +264,9 @@ stnlabz_module_discovery_scan(
 
         written = snprintf(so_name, sizeof(so_name), "%s.so", module_id);
         if (written < 0 || (size_t)written >= sizeof(so_name) ||
-            !stnlabz_discovery_join_path(so_path, sizeof(so_path), directory_path, so_name))
+            !stnlabz_discovery_join_path(bin_path, sizeof(bin_path),
+                                         directory_path, STNLABZ_MODULE_BIN_DIR) ||
+            !stnlabz_discovery_join_path(so_path, sizeof(so_path), bin_path, so_name))
         {
             report->modules_rejected++;
             continue;
