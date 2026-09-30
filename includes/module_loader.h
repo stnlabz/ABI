@@ -29,7 +29,7 @@ typedef struct
 {
     void *handle;
     char module_id[STNLABZ_MODULE_ID_MAX];
-    char module_path[STNLABZ_MODULE_LOADER_PATH_MAX];
+    char dll_path[STNLABZ_MODULE_LOADER_PATH_MAX];
     const stnlabz_module_descriptor_t *descriptor;
 } stnlabz_loaded_module_t;
 
