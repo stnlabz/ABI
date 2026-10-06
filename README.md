@@ -1,11 +1,11 @@
 # ABI
 Cross APP and Platform Modules ABI
 
-STN-LABZ Module ABI 1.4
+STN-LABZ Module ABI 1.5
 Lifecycle bump for deterministic hot replacement.
 
 ABI change:
-  1.3 -> 1.4
+  1.3 -> 1.4 -> 1.5
 
 New lifecycle states:
   STOPPED
