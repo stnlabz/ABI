@@ -100,6 +100,10 @@ typedef stnlabz_module_result_t (*stnlabz_module_service_handler_fn)(
 );
 
 typedef int (*stnlabz_module_send_message_fn)(const char *message);
+typedef int (*stnlabz_module_send_private_message_fn)(
+    const char *target,
+    const char *message
+);
 
 typedef int (*stnlabz_module_register_command_fn)(
     const char *name,
@@ -135,6 +139,7 @@ typedef stnlabz_module_result_t (*stnlabz_module_invoke_service_fn)(
 typedef struct
 {
     stnlabz_module_send_message_fn send_message;
+    stnlabz_module_send_private_message_fn send_private_message;
     stnlabz_module_register_command_fn register_command;
     stnlabz_module_unregister_command_fn unregister_command;
     stnlabz_module_register_service_fn register_service;
