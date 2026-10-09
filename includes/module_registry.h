@@ -125,8 +125,7 @@ stnlabz_module_registry_stop(
 /*
  * Remove a non-running module from the registry.
  *
- * Core first records an UNREGISTERED audit event,
- * then removes the module record.
+ * Core owns any corresponding lifecycle audit record.
  *
  * ACTIVE modules cannot be unregistered.
  */
