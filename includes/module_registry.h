@@ -16,38 +16,6 @@
 
 
 #define STNLABZ_MODULE_REGISTRY_MAX 32
-#define STNLABZ_MODULE_AUDIT_MAX 128
-
-
-/*
- * ------------------------------------------------
- * MODULE AUDIT EVENTS
- * ------------------------------------------------
- */
-
-typedef enum
-{
-    STNLABZ_MODULE_AUDIT_DISCOVERED = 0,
-
-    STNLABZ_MODULE_AUDIT_VERIFIED,
-
-    STNLABZ_MODULE_AUDIT_TESTING,
-
-    STNLABZ_MODULE_AUDIT_QUALIFIED,
-
-    STNLABZ_MODULE_AUDIT_FAILED,
-
-    STNLABZ_MODULE_AUDIT_AUTHORIZED,
-
-    STNLABZ_MODULE_AUDIT_ACTIVE,
-
-    STNLABZ_MODULE_AUDIT_STOPPED,
-
-    STNLABZ_MODULE_AUDIT_QUARANTINED,
-
-    STNLABZ_MODULE_AUDIT_UNREGISTERED
-
-} stnlabz_module_audit_event_t;
 
 
 /*
@@ -71,31 +39,6 @@ typedef struct
 
 /*
  * ------------------------------------------------
- * MODULE AUDIT ENTRY
- * ------------------------------------------------
- */
-
-typedef struct
-{
-    unsigned long sequence;
-
-    char module_id[
-        STNLABZ_MODULE_ID_MAX
-    ];
-
-    stnlabz_module_audit_event_t event;
-
-    stnlabz_module_state_t previous_state;
-
-    stnlabz_module_state_t resulting_state;
-
-    stnlabz_module_result_t result;
-
-} stnlabz_module_audit_entry_t;
-
-
-/*
- * ------------------------------------------------
  * MODULE REGISTRY
  * ------------------------------------------------
  */
@@ -107,14 +50,6 @@ typedef struct
     ];
 
     size_t count;
-
-    stnlabz_module_audit_entry_t audit[
-        STNLABZ_MODULE_AUDIT_MAX
-    ];
-
-    size_t audit_count;
-
-    unsigned long next_sequence;
 
 } stnlabz_module_registry_t;
 
