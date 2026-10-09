@@ -93,103 +93,6 @@ stnlabz_module_registry_find_mutable(
 }
 
 
-static stnlabz_module_result_t
-stnlabz_module_audit(
-    stnlabz_module_registry_t *registry,
-    const stnlabz_module_record_t *module,
-    stnlabz_module_audit_event_t event,
-    stnlabz_module_state_t previous_state,
-    stnlabz_module_result_t result
-)
-{
-    stnlabz_module_audit_entry_t *entry;
-
-    size_t length;
-
-
-    if (
-        registry == NULL ||
-        module == NULL
-    )
-    {
-        return
-            STNLABZ_MODULE_ERR_INVALID_ARGUMENT;
-    }
-
-
-    if (
-        registry->audit_count >=
-        STNLABZ_MODULE_AUDIT_MAX
-    )
-    {
-        return
-            STNLABZ_MODULE_ERR_AUDIT_FULL;
-    }
-
-
-    entry =
-        &registry->audit[
-            registry->audit_count
-        ];
-
-
-    memset(
-        entry,
-        0,
-        sizeof(*entry)
-    );
-
-
-    entry->sequence =
-        registry->next_sequence++;
-
-
-    entry->event =
-        event;
-
-
-    entry->previous_state =
-        previous_state;
-
-
-    entry->resulting_state =
-        module->state;
-
-
-    entry->result =
-        result;
-
-
-    length =
-        strlen(
-            module->descriptor.id
-        );
-
-
-    if (
-        length >=
-        sizeof(entry->module_id)
-    )
-    {
-        return
-            STNLABZ_MODULE_ERR_INVALID_IDENTITY;
-    }
-
-
-    memcpy(
-        entry->module_id,
-        module->descriptor.id,
-        length + 1
-    );
-
-
-    registry->audit_count++;
-
-
-    return
-        STNLABZ_MODULE_OK;
-}
-
 
 void
 stnlabz_module_registry_init(
@@ -209,10 +112,6 @@ stnlabz_module_registry_init(
         0,
         sizeof(*registry)
     );
-
-
-    registry->next_sequence =
-        1;
 }
 
 
@@ -223,8 +122,6 @@ stnlabz_module_registry_discover(
 )
 {
     stnlabz_module_record_t *record;
-
-    stnlabz_module_result_t audit_result;
 
 
     if (
@@ -301,31 +198,7 @@ stnlabz_module_registry_discover(
         0;
 
 
-    audit_result =
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_DISCOVERED,
-            STNLABZ_MODULE_STATE_DISCOVERED,
-            STNLABZ_MODULE_OK
-        );
-
-
-    if (
-        audit_result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        memset(
-            record,
-            0,
-            sizeof(*record)
-        );
-
-
-        return
-            audit_result;
-    }
+    
 
 
     registry->count++;
@@ -343,10 +216,6 @@ stnlabz_module_registry_verify(
 )
 {
     stnlabz_module_record_t *record;
-
-    stnlabz_module_state_t previous;
-
-    stnlabz_module_result_t audit_result;
 
 
     record =
@@ -385,10 +254,6 @@ stnlabz_module_registry_verify(
     }
 
 
-    previous =
-        record->state;
-
-
     if (
         record
             ->descriptor
@@ -404,14 +269,7 @@ stnlabz_module_registry_verify(
             STNLABZ_MODULE_STATE_FAILED;
 
 
-        (void)
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_FAILED,
-            previous,
-            STNLABZ_MODULE_ERR_INCOMPATIBLE
-        );
+        
 
 
         return
@@ -423,28 +281,7 @@ stnlabz_module_registry_verify(
         STNLABZ_MODULE_STATE_UNVERIFIED;
 
 
-    audit_result =
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_VERIFIED,
-            previous,
-            STNLABZ_MODULE_OK
-        );
-
-
-    if (
-        audit_result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        record->state =
-            previous;
-
-
-        return
-            audit_result;
-    }
+    
 
 
     return
@@ -460,11 +297,7 @@ stnlabz_module_registry_qualify(
 {
     stnlabz_module_record_t *record;
 
-    stnlabz_module_state_t previous;
-
     stnlabz_module_result_t module_result;
-
-    stnlabz_module_result_t audit_result;
 
     stnlabz_module_qualification_result_t report;
 
@@ -505,36 +338,11 @@ stnlabz_module_registry_qualify(
     }
 
 
-    previous =
-        record->state;
-
-
     record->state =
         STNLABZ_MODULE_STATE_TESTING;
 
 
-    audit_result =
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_TESTING,
-            previous,
-            STNLABZ_MODULE_OK
-        );
-
-
-    if (
-        audit_result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        record->state =
-            previous;
-
-
-        return
-            audit_result;
-    }
+    
 
 
     memset(
@@ -554,10 +362,6 @@ stnlabz_module_registry_qualify(
 
     record->qualification =
         report;
-
-
-    previous =
-        record->state;
 
 
     if (
@@ -583,14 +387,7 @@ stnlabz_module_registry_qualify(
             0;
 
 
-        (void)
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_FAILED,
-            previous,
-            STNLABZ_MODULE_ERR_QUALIFICATION
-        );
+        
 
 
         return
@@ -602,28 +399,7 @@ stnlabz_module_registry_qualify(
         STNLABZ_MODULE_STATE_QUALIFIED;
 
 
-    audit_result =
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_QUALIFIED,
-            previous,
-            STNLABZ_MODULE_OK
-        );
-
-
-    if (
-        audit_result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        record->state =
-            STNLABZ_MODULE_STATE_FAILED;
-
-
-        return
-            audit_result;
-    }
+    
 
 
     return
@@ -639,10 +415,6 @@ stnlabz_module_registry_restore_qualification(
 )
 {
     stnlabz_module_record_t *record;
-
-    stnlabz_module_state_t previous;
-
-    stnlabz_module_result_t audit_result;
 
 
     if (
@@ -710,10 +482,6 @@ stnlabz_module_registry_restore_qualification(
     }
 
 
-    previous =
-        record->state;
-
-
     record->qualification =
         *qualification;
 
@@ -726,35 +494,7 @@ stnlabz_module_registry_restore_qualification(
         STNLABZ_MODULE_STATE_QUALIFIED;
 
 
-    audit_result =
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_QUALIFIED,
-            previous,
-            STNLABZ_MODULE_OK
-        );
-
-
-    if (
-        audit_result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        record->state =
-            previous;
-
-
-        memset(
-            &record->qualification,
-            0,
-            sizeof(record->qualification)
-        );
-
-
-        return
-            audit_result;
-    }
+    
 
 
     return
@@ -769,8 +509,6 @@ stnlabz_module_registry_authorize_activation(
 )
 {
     stnlabz_module_record_t *record;
-
-    stnlabz_module_result_t audit_result;
 
 
     record =
@@ -822,28 +560,7 @@ stnlabz_module_registry_authorize_activation(
         1;
 
 
-    audit_result =
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_AUTHORIZED,
-            record->state,
-            STNLABZ_MODULE_OK
-        );
-
-
-    if (
-        audit_result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        record->activation_authorized =
-            0;
-
-
-        return
-            audit_result;
-    }
+    
 
 
     return
@@ -858,10 +575,6 @@ stnlabz_module_registry_activate(
 )
 {
     stnlabz_module_record_t *record;
-
-    stnlabz_module_state_t previous;
-
-    stnlabz_module_result_t audit_result;
 
 
     record =
@@ -911,36 +624,11 @@ stnlabz_module_registry_activate(
     }
 
 
-    previous =
-        record->state;
-
-
     record->state =
         STNLABZ_MODULE_STATE_ACTIVE;
 
 
-    audit_result =
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_ACTIVE,
-            previous,
-            STNLABZ_MODULE_OK
-        );
-
-
-    if (
-        audit_result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        record->state =
-            previous;
-
-
-        return
-            audit_result;
-    }
+    
 
 
     return
@@ -955,10 +643,6 @@ stnlabz_module_registry_stop(
 )
 {
     stnlabz_module_record_t *record;
-
-    stnlabz_module_state_t previous;
-
-    stnlabz_module_result_t audit_result;
 
 
     record =
@@ -997,10 +681,6 @@ stnlabz_module_registry_stop(
     }
 
 
-    previous =
-        record->state;
-
-
     /*
      * Stopping does not destroy qualification.
      *
@@ -1015,28 +695,7 @@ stnlabz_module_registry_stop(
         STNLABZ_MODULE_STATE_STOPPED;
 
 
-    audit_result =
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_STOPPED,
-            previous,
-            STNLABZ_MODULE_OK
-        );
-
-
-    if (
-        audit_result !=
-        STNLABZ_MODULE_OK
-    )
-    {
-        record->state =
-            previous;
-
-
-        return
-            audit_result;
-    }
+    
 
 
     return
@@ -1071,10 +730,6 @@ stnlabz_module_registry_unregister(
     )
     {
         stnlabz_module_record_t *record;
-
-        stnlabz_module_state_t previous;
-
-        stnlabz_module_result_t audit_result;
 
         size_t move_index;
 
@@ -1115,10 +770,6 @@ stnlabz_module_registry_unregister(
         }
 
 
-        previous =
-            record->state;
-
-
         record->activation_authorized =
             0;
 
@@ -1127,35 +778,10 @@ stnlabz_module_registry_unregister(
             STNLABZ_MODULE_STATE_UNREGISTERED;
 
 
-        audit_result =
-            stnlabz_module_audit(
-                registry,
-                record,
-                STNLABZ_MODULE_AUDIT_UNREGISTERED,
-                previous,
-                STNLABZ_MODULE_OK
-            );
+        
 
 
-        if (
-            audit_result !=
-            STNLABZ_MODULE_OK
-        )
-        {
-            record->state =
-                previous;
-
-
-            return
-                audit_result;
-        }
-
-
-        /*
-         * Audit now contains the terminal state.
-         *
-         * Remove the live registry record.
-         */
+        /* Remove the live registry record. */
 
         for (
             move_index = index;
@@ -1207,8 +833,6 @@ stnlabz_module_registry_fail(
 {
     stnlabz_module_record_t *record;
 
-    stnlabz_module_state_t previous;
-
 
     record =
         stnlabz_module_registry_find_mutable(
@@ -1226,10 +850,6 @@ stnlabz_module_registry_fail(
     }
 
 
-    previous =
-        record->state;
-
-
     record->state =
         STNLABZ_MODULE_STATE_FAILED;
 
@@ -1238,14 +858,7 @@ stnlabz_module_registry_fail(
         0;
 
 
-    return
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_FAILED,
-            previous,
-            STNLABZ_MODULE_OK
-        );
+    return STNLABZ_MODULE_OK;
 }
 
 
@@ -1257,8 +870,6 @@ stnlabz_module_registry_quarantine(
 {
     stnlabz_module_record_t *record;
 
-    stnlabz_module_state_t previous;
-
 
     record =
         stnlabz_module_registry_find_mutable(
@@ -1276,10 +887,6 @@ stnlabz_module_registry_quarantine(
     }
 
 
-    previous =
-        record->state;
-
-
     record->state =
         STNLABZ_MODULE_STATE_QUARANTINED;
 
@@ -1288,14 +895,7 @@ stnlabz_module_registry_quarantine(
         0;
 
 
-    return
-        stnlabz_module_audit(
-            registry,
-            record,
-            STNLABZ_MODULE_AUDIT_QUARANTINED,
-            previous,
-            STNLABZ_MODULE_OK
-        );
+    return STNLABZ_MODULE_OK;
 }
 
 
