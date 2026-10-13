@@ -22,6 +22,8 @@
 #include <windows.h>
 
 #include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #include "module_loader.h"
 
@@ -101,6 +103,21 @@ static int stnlabz_module_loader_descriptor_valid(
  * INITIALIZATION
  * ------------------------------------------------
  */
+
+static int stnlabz_module_loader_reserve(stnlabz_module_loader_t *loader)
+{
+    size_t cap;
+    stnlabz_loaded_module_t *p;
+    if (loader->count < loader->capacity) return 1;
+    if (loader->capacity > SIZE_MAX / 2) return 0;
+    cap = loader->capacity ? loader->capacity * 2 : 16;
+    if (cap > SIZE_MAX / sizeof(*p)) return 0;
+    p = realloc(loader->modules, cap * sizeof(*p));
+    if (!p) return 0;
+    loader->modules = p;
+    loader->capacity = cap;
+    return 1;
+}
 
 void stnlabz_module_loader_init(
     stnlabz_module_loader_t *loader
@@ -233,14 +250,6 @@ stnlabz_module_loader_load(
     }
 
 
-    if (
-        loader->count >=
-        STNLABZ_MODULE_LOADER_MAX
-    )
-    {
-        return
-            STNLABZ_MODULE_LOADER_ERR_FULL;
-    }
 
 
     id_length =
@@ -390,6 +399,11 @@ stnlabz_module_loader_load(
      * The DLL must remain loaded while Core holds
      * descriptor function pointers from it.
      */
+
+    if (!stnlabz_module_loader_reserve(loader)) {
+        FreeLibrary(handle);
+        return STNLABZ_MODULE_LOADER_ERR_FULL;
+    }
 
     loaded =
         &loader->modules[
