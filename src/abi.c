@@ -811,6 +811,6 @@ stnlabz_module_abi_self_test(void)
         "MODULE ABI 1.4 LIFECYCLE SELF TEST PASS\n"
     );
 
-
+    stnlabz_module_registry_destroy(&registry);
     return 0;
 }
