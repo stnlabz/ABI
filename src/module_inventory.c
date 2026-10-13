@@ -15,6 +15,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #include "module_inventory.h"
 
@@ -261,6 +263,28 @@ stnlabz_module_inventory_save(
  * ------------------------------------------------
  */
 
+static int stnlabz_module_inventory_reserve(stnlabz_module_inventory_t *inventory)
+{
+    size_t cap;
+    stnlabz_module_inventory_record_t *p;
+    if (inventory->count < inventory->capacity) return 1;
+    if (inventory->capacity > SIZE_MAX / 2) return 0;
+    cap = inventory->capacity ? inventory->capacity * 2 : 16;
+    if (cap > SIZE_MAX / sizeof(*p)) return 0;
+    p = realloc(inventory->records, cap * sizeof(*p));
+    if (!p) return 0;
+    inventory->records = p;
+    inventory->capacity = cap;
+    return 1;
+}
+
+void stnlabz_module_inventory_destroy(stnlabz_module_inventory_t *inventory)
+{
+    if (!inventory) return;
+    free(inventory->records);
+    memset(inventory, 0, sizeof(*inventory));
+}
+
 void stnlabz_module_inventory_init(
     stnlabz_module_inventory_t *inventory
 )
@@ -495,10 +519,7 @@ stnlabz_module_inventory_load(
         }
 
 
-        if (
-            inventory->count >=
-            STNLABZ_MODULE_INVENTORY_MAX
-        )
+        if (!stnlabz_module_inventory_reserve(inventory))
         {
             fclose(
                 file
@@ -615,10 +636,7 @@ stnlabz_module_inventory_store(
         record == NULL
     )
     {
-        if (
-            inventory->count >=
-            STNLABZ_MODULE_INVENTORY_MAX
-        )
+        if (!stnlabz_module_inventory_reserve(inventory))
         {
             return
                 STNLABZ_MODULE_INVENTORY_ERR_FULL;
