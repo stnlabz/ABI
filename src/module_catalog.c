@@ -12,6 +12,8 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #include "module_catalog.h"
 
@@ -35,6 +37,13 @@ void stnlabz_module_catalog_init(
     );
 }
 
+
+void stnlabz_module_catalog_destroy(stnlabz_module_catalog_t *catalog)
+{
+    if (!catalog) return;
+    free(catalog->entries);
+    memset(catalog, 0, sizeof(*catalog));
+}
 
 stnlabz_module_result_t stnlabz_module_catalog_register(
     stnlabz_module_catalog_t *catalog,
@@ -78,13 +87,19 @@ stnlabz_module_result_t stnlabz_module_catalog_register(
     }
 
 
-    if (
-        catalog->count >=
-        STNLABZ_MODULE_CATALOG_MAX
-    )
+    if (catalog->count == catalog->capacity)
     {
-        return
-            STNLABZ_MODULE_ERR_REGISTRY_FULL;
+        size_t cap;
+        const stnlabz_module_descriptor_t **p;
+        if (catalog->capacity > SIZE_MAX / 2)
+            return STNLABZ_MODULE_ERR_REGISTRY_FULL;
+        cap = catalog->capacity ? catalog->capacity * 2 : 16;
+        if (cap > SIZE_MAX / sizeof(*p))
+            return STNLABZ_MODULE_ERR_REGISTRY_FULL;
+        p = realloc(catalog->entries, cap * sizeof(*p));
+        if (!p) return STNLABZ_MODULE_ERR_REGISTRY_FULL;
+        catalog->entries = p;
+        catalog->capacity = cap;
     }
 
 
