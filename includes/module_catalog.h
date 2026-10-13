@@ -6,18 +6,14 @@
 #include "module.h"
 
 
-#define STNLABZ_MODULE_CATALOG_MAX \
-    32
 
 
 typedef struct
 {
-    const stnlabz_module_descriptor_t *
-        entries[
-            STNLABZ_MODULE_CATALOG_MAX
-        ];
+    const stnlabz_module_descriptor_t **entries;
 
     size_t count;
+    size_t capacity;
 
 } stnlabz_module_catalog_t;
 
@@ -25,6 +21,7 @@ typedef struct
 void stnlabz_module_catalog_init(
     stnlabz_module_catalog_t *catalog
 );
+void stnlabz_module_catalog_destroy(stnlabz_module_catalog_t *catalog);
 
 
 stnlabz_module_result_t stnlabz_module_catalog_register(
