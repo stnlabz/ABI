@@ -607,6 +607,9 @@ void stnlabz_module_loader_unload_all(
 
         loader->count--;
     }
+    free(loader->modules);
+    loader->modules = NULL;
+    loader->capacity = 0;
 }
 
 
