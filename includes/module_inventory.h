@@ -6,8 +6,6 @@
 #include "module.h"
 
 
-#define STNLABZ_MODULE_INVENTORY_MAX \
-    32
 
 #define STNLABZ_MODULE_INVENTORY_PATH_MAX \
     1024
@@ -76,12 +74,10 @@ typedef struct
 
 typedef struct
 {
-    stnlabz_module_inventory_record_t
-        records[
-            STNLABZ_MODULE_INVENTORY_MAX
-        ];
+    stnlabz_module_inventory_record_t *records;
 
     size_t count;
+    size_t capacity;
 
 
     char path[
@@ -100,6 +96,8 @@ typedef struct
 void stnlabz_module_inventory_init(
     stnlabz_module_inventory_t *inventory
 );
+
+void stnlabz_module_inventory_destroy(stnlabz_module_inventory_t *inventory);
 
 
 stnlabz_module_inventory_result_t
