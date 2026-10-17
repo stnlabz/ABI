@@ -148,12 +148,7 @@ stnlabz_module_inventory_save(
 
 
     if (
-        fopen_s(
-            &file,
-            inventory->path,
-            "w"
-        ) != 0 ||
-        file == NULL
+        (file = fopen(inventory->path, "w")) == NULL
     )
     {
         return
@@ -407,12 +402,7 @@ stnlabz_module_inventory_load(
 
 
     if (
-        fopen_s(
-            &file,
-            inventory->path,
-            "r"
-        ) != 0 ||
-        file == NULL
+        (file = fopen(inventory->path, "r")) == NULL
     )
     {
         /*
@@ -447,14 +437,12 @@ stnlabz_module_inventory_load(
 
 
         fields =
-            sscanf_s(
+            sscanf(
                 line,
 
                 "%63[^|]|%u|%u|%u|%u|%u|%u|%u|%u|%d|%d",
 
                 record.module_id,
-                (unsigned int)
-                    sizeof(record.module_id),
 
                 &record.version_major,
                 &record.version_minor,
